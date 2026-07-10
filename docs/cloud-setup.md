@@ -8,6 +8,16 @@
 - Firebase Cloud Messaging with a service-account JSON file.
 - Google Maps JavaScript API browser key restricted to the deployed frontend origins.
 
+## Frontend Deployment
+
+The Netlify frontend should set:
+
+```text
+VITE_API_BASE_URL=https://<deployed-api-host>/api/v1
+```
+
+If this value is absent, the static Netlify build uses an explicit browser-local demo adapter. This prevents the deployed site from calling `localhost` while keeping live cloud integrations unavailable until real backend configuration is provided.
+
 ## Local Secrets
 
 Use environment variables, user secrets, or a local `.env` file ignored by Git. Do not commit secrets.

@@ -33,6 +33,7 @@ The scaffold does not fake cloud connectivity. Set real local secrets before usi
 - `VertexAI__ProjectId` plus Google Application Default Credentials
 - `Firebase__ServiceAccountPath`
 - `VITE_GOOGLE_MAPS_API_KEY`
+- `VITE_API_BASE_URL` for deployed frontend-to-API traffic
 
 ## Local Development
 
@@ -45,6 +46,10 @@ npm run dev:web
 ```
 
 The API defaults to explicit development demo mode with in-memory persistence. Production defaults to SQL Server and requires a connection string.
+
+## Netlify Deployment
+
+The Netlify deployment hosts the React/Vite frontend. If `VITE_API_BASE_URL` is not configured in Netlify, the production frontend uses an explicit browser-local static demo adapter instead of calling `localhost`. Set `VITE_API_BASE_URL` to the deployed ASP.NET API base URL, for example `https://api.example.com/api/v1`, to use live backend workflows.
 
 ## Verification
 

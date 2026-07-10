@@ -30,7 +30,8 @@ import {
   NotificationItem,
   OperationsOverview,
   PointOfInterest,
-  Stadium
+  Stadium,
+  apiMode
 } from "./services/api";
 import { clearSession, loadSession, replaceSession, saveSession, StoredSession } from "./services/session";
 import { isGoogleMapsConfigured, loadGoogleMaps } from "./services/googleMaps";
@@ -224,8 +225,19 @@ function AuthScreen({ onAuthenticated }: { onAuthenticated: (auth: Parameters<ty
         </div>
         <h1 id="auth-title">{mode === "login" ? "Sign in to operations" : "Create a tournament account"}</h1>
         <p className="muted">
-          Connects to the ASP.NET Core API. No backend success is simulated.
+          {apiMode === "demo"
+            ? "Static demo data is active for this Netlify deployment."
+            : "Connects to the ASP.NET Core API. No backend success is simulated."}
         </p>
+        {apiMode === "demo" && (
+          <div className="status-line" role="status">
+            <CheckCircle2 aria-hidden="true" />
+            <div>
+              <strong>Static demo mode</strong>
+              <span>Set VITE_API_BASE_URL to a deployed ASP.NET API to use live backend workflows.</span>
+            </div>
+          </div>
+        )}
 
         <div className="segmented" role="tablist" aria-label="Authentication mode">
           <button
