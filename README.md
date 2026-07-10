@@ -9,7 +9,7 @@ Enterprise scaffold for a Generative AI-enabled Smart Stadium and Tournament Ope
 - EF Core SQL Server model and initial migration for stadium, match, route, crowd, incident, notification, AI, sustainability, transport, volunteer, and audit entities.
 - Stage 3 backend foundation with OpenAPI, structured JSON logging, readiness checks, audit writer, and integration event outbox writer.
 - Stage 4 AI intelligence foundation with multi-agent orchestration, prompt guardrails, confidence metadata, AI analytics, knowledge-base schema, and AI metadata endpoints.
-- React `19.2.0` + Vite `8.1.2` frontend with accessible auth, fan console, command center, AI assistant, incidents, notifications, route request, map readiness, and persisted session/theme state.
+- React `19.2.0` + Vite `8.1.2` frontend with accessible auth, fan console, command center, AI assistant, incidents, notifications, route request, live Google Maps readiness, static stadium map fallback, and persisted session/theme state.
 - Live integration adapters for Vertex AI Gemini and Firebase Cloud Messaging that fail clearly when credentials are missing.
 - Health checks, ProblemDetails errors, correlation IDs, rate limiting, CORS, env templates, Docker/Cloud Run scaffolding, unit/API/frontend/E2E test hooks.
 - Stage 3 enterprise architecture docs, authenticated SignalR operations hub, and SQL Server event outbox migration.
@@ -50,6 +50,8 @@ The API defaults to explicit development demo mode with in-memory persistence. P
 ## Netlify Deployment
 
 The Netlify deployment hosts the React/Vite frontend. If `VITE_API_BASE_URL` is not configured in Netlify, the production frontend uses an explicit browser-local static demo adapter instead of calling `localhost`. Set `VITE_API_BASE_URL` to the deployed ASP.NET API base URL, for example `https://api.example.com/api/v1`, to use live backend workflows.
+
+The fan console renders a built-in stadium operations map when `VITE_GOOGLE_MAPS_API_KEY` is absent or the Google Maps JavaScript API fails to load. Add a restricted browser key in Netlify to switch that panel to the live Google map.
 
 ## Verification
 

@@ -14,9 +14,12 @@ The Netlify frontend should set:
 
 ```text
 VITE_API_BASE_URL=https://<deployed-api-host>/api/v1
+VITE_GOOGLE_MAPS_API_KEY=<restricted-browser-key>
 ```
 
 If this value is absent, the static Netlify build uses an explicit browser-local demo adapter. This prevents the deployed site from calling `localhost` while keeping live cloud integrations unavailable until real backend configuration is provided.
+
+If `VITE_GOOGLE_MAPS_API_KEY` is absent, the fan console uses the built-in stadium operations map so deployed demos still show POIs and route context. Configure a Google Maps JavaScript API key restricted to the Netlify domain to enable the live map.
 
 ## Local Secrets
 

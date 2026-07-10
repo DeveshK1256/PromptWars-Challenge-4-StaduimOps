@@ -440,7 +440,7 @@ function FanConsole({ client }: { client: ApiClient }) {
             ))}
           </div>
         </div>
-        <MapPanel stadium={selectedStadium} />
+        <MapPanel stadium={selectedStadium} pois={pois} route={route} />
       </article>
 
       <article className="panel">
@@ -920,11 +920,23 @@ function NotificationConsole({ client }: { client: ApiClient }) {
   );
 }
 
-function MapPanel({ stadium }: { stadium: Stadium | null }) {
+function MapPanel({
+  stadium,
+  pois,
+  route
+}: {
+  stadium: Stadium | null;
+  pois: PointOfInterest[];
+  route: NavigationRoute | null;
+}) {
   const mapRef = useRef<HTMLDivElement | null>(null);
   const [status, setStatus] = useState<AsyncStatus>("idle");
   const [message, setMessage] = useState("");
   const configured = isGoogleMapsConfigured();
+  const showFallbackMap = !configured || status === "error";
+  const fallbackReason = configured
+    ? `Live Google Maps could not load: ${message || "unknown error"}. Showing the stadium operations map instead.`
+    : "Live Google Maps key is not configured. Showing the built-in stadium operations map.";
 
   useEffect(() => {
     if (!stadium || !configured || !mapRef.current) {
@@ -985,21 +997,131 @@ function MapPanel({ stadium }: { stadium: Stadium | null }) {
           Open Maps
         </a>
       </div>
-      {configured ? (
+      {configured && (
         <>
-          <div className="map-canvas" ref={mapRef} aria-label={`Google map for ${stadium.name}`} />
+          <div
+            className={showFallbackMap ? "map-canvas is-hidden" : "map-canvas"}
+            ref={mapRef}
+            aria-label={`Google map for ${stadium.name}`}
+          />
           <p className="notice-line" aria-live="polite">
             {status === "loading" ? "Loading Google Maps JavaScript API..." : message || "Map ready."}
           </p>
         </>
-      ) : (
-        <div className="map-missing" role="status">
-          <AlertTriangle aria-hidden="true" />
-          <p>Google Maps key is not configured. Set VITE_GOOGLE_MAPS_API_KEY to enable the live map.</p>
-        </div>
       )}
+      {showFallbackMap && <StaticStadiumMap stadium={stadium} pois={pois} route={route} reason={fallbackReason} />}
     </div>
   );
+}
+
+const mapMarkerLayout = [
+  { left: "18%", top: "22%" },
+  { left: "62%", top: "58%" },
+  { left: "28%", top: "70%" },
+  { left: "64%", top: "72%" }
+];
+
+function StaticStadiumMap({
+  stadium,
+  pois,
+  route,
+  reason
+}: {
+  stadium: Stadium;
+  pois: PointOfInterest[];
+  route: NavigationRoute | null;
+  reason: string;
+}) {
+  const markers = pois.slice(0, mapMarkerLayout.length).map((poi, index) => ({
+    poi,
+    position: mapMarkerLayout[index],
+    tone: getPoiTone(poi)
+  }));
+
+  return (
+    <div
+      className="static-map"
+      role="img"
+      aria-label={`${stadium.name} operations map with concourse, seating bowl, route, and points of interest.`}
+    >
+      <div className="static-map-board" aria-hidden="true">
+        <div className="map-compass">N</div>
+        <div className="map-ring map-ring-outer">Concourse</div>
+        <div className="map-ring map-ring-inner">Seating bowl</div>
+        <div className="map-field">
+          <span>Pitch</span>
+        </div>
+        <div className="map-route map-route-main" />
+        <div className="map-route map-route-turn" />
+        <div className="map-route-dot map-route-start">Start</div>
+        <div className="map-route-dot map-route-end">Gate C</div>
+        {markers.map(({ poi, position, tone }) => (
+          <div
+            className={`map-marker ${tone}`}
+            key={poi.id}
+            style={{ left: position.left, top: position.top }}
+            title={`${poi.name}, ${poi.category}, wait ${poi.estimatedWaitMinutes} minutes`}
+          >
+            <span>{getPoiInitial(poi)}</span>
+            <strong>{poi.name}</strong>
+          </div>
+        ))}
+      </div>
+      <div className="map-legend">
+        <span>
+          <i className="legend-swatch gate" /> Entrances
+        </span>
+        <span>
+          <i className="legend-swatch food" /> Food
+        </span>
+        <span>
+          <i className="legend-swatch medical" /> Medical
+        </span>
+        <span>
+          <i className="legend-line" /> Recommended route
+        </span>
+      </div>
+      {route && (
+        <div className="map-route-summary">
+          <strong>
+            {route.fromLocation} to {route.toLocation}
+          </strong>
+          <span>
+            {route.distanceMeters} m, {route.estimatedMinutes} min, {route.crowdLoadPercent}% crowd load
+          </span>
+        </div>
+      )}
+      <p className="notice-line">{reason}</p>
+    </div>
+  );
+}
+
+function getPoiTone(poi: PointOfInterest) {
+  const category = poi.category.toLowerCase();
+  if (category.includes("entrance") || category.includes("gate")) {
+    return "gate";
+  }
+  if (category.includes("food")) {
+    return "food";
+  }
+  if (category.includes("medical") || category.includes("first aid")) {
+    return "medical";
+  }
+  return poi.isAccessible ? "accessible" : "default";
+}
+
+function getPoiInitial(poi: PointOfInterest) {
+  const category = poi.category.toLowerCase();
+  if (category.includes("entrance") || category.includes("gate")) {
+    return "G";
+  }
+  if (category.includes("food")) {
+    return "F";
+  }
+  if (category.includes("medical") || category.includes("first aid")) {
+    return "M";
+  }
+  return "P";
 }
 
 function SectionHeader({
