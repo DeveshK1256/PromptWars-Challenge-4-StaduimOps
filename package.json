@@ -1,0 +1,19 @@
+{
+  "name": "smart-stadium-operations",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Generative AI-enabled Smart Stadium and Tournament Operations Platform scaffold.",
+  "workspaces": [
+    "apps/web"
+  ],
+  "scripts": {
+    "build": "npm run build --workspace apps/web",
+    "dev:web": "npm run dev --workspace apps/web",
+    "test:web": "npm run test --workspace apps/web",
+    "test:web:run": "npm run test:run --workspace apps/web"
+  },
+  "engines": {
+    "node": ">=24.13.0",
+    "npm": ">=11.12.1"
+  }
+}
