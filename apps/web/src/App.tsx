@@ -165,7 +165,7 @@ export function App() {
         {activeView === "transport" && <TransportConsole client={client} />}
         {activeView === "sustainability" && <SustainabilityDashboard client={client} stadiumId={DEFAULT_STADIUM_ID} />}
         {activeView === "volunteer" && <VolunteerConsole client={client} />}
-        {activeView === "incidents" && <IncidentConsole client={client} />}
+        {activeView === "incidents" && <IncidentConsole client={client} userRoles={session.user.roles} />}
         {activeView === "notifications" && <NotificationConsole client={client} />}
       </main>
     </div>

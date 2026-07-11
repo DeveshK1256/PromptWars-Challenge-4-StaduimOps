@@ -661,23 +661,47 @@ async function demoRequest<T>(path: string, body: unknown): Promise<T> {
       accessibilityPreference: string;
       requestedRole: string;
     }>;
+    const email = payload.email || "fan@example.com";
+    const name = payload.name || "Demo Fan";
+    const role = payload.requestedRole || "RegisteredFan";
+    // Store registered user in local registry
+    const registry = readDemoRegistry();
+    if (registry[email]) {
+      throw {
+        title: "Already registered",
+        detail: `An account with email ${email} already exists. Please sign in instead.`,
+        status: 409,
+      } satisfies ApiError;
+    }
+    registry[email] = { name, role, preferredLanguage: payload.preferredLanguage || "en", accessibilityPreference: payload.accessibilityPreference };
+    localStorage.setItem("stadium-ops-demo-users", JSON.stringify(registry));
     return demoAuth(
-      payload.name || "Demo Fan",
-      payload.email || "fan@example.com",
+      name,
+      email,
       payload.preferredLanguage,
       payload.accessibilityPreference,
-      payload.requestedRole,
+      role,
     ) as T;
   }
 
   if (path === "/auth/login") {
     const payload = body as Partial<{ email: string }>;
+    const email = payload.email || "";
+    const registry = readDemoRegistry();
+    const user = registry[email];
+    if (!user) {
+      throw {
+        title: "Invalid credentials",
+        detail: `No account found for ${email}. Please register first.`,
+        status: 401,
+      } satisfies ApiError;
+    }
     return demoAuth(
-      "Demo Operator",
-      payload.email || "operator@example.com",
-      "en",
-      "Wheelchair route",
-      "RegisteredFan",
+      user.name,
+      email,
+      user.preferredLanguage,
+      user.accessibilityPreference,
+      user.role,
     ) as T;
   }
 
@@ -1164,4 +1188,22 @@ function demoLiveAlerts(): LiveAlert[] {
       severity: "info",
     },
   ];
+}
+
+type DemoUserEntry = {
+  name: string;
+  role: string;
+  preferredLanguage: string;
+  accessibilityPreference?: string;
+};
+
+function readDemoRegistry(): Record<string, DemoUserEntry> {
+  const raw = localStorage.getItem("stadium-ops-demo-users");
+  if (!raw) return {};
+  try {
+    return JSON.parse(raw) as Record<string, DemoUserEntry>;
+  } catch {
+    localStorage.removeItem("stadium-ops-demo-users");
+    return {};
+  }
 }

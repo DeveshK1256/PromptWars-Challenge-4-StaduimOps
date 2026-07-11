@@ -6,7 +6,7 @@ import { RetryButton } from "../components/RetryButton";
 import { SectionHeader } from "../components/SectionHeader";
 import { StatusNotice } from "../components/StatusNotice";
 
-export function IncidentConsole({ client }: { client: ApiClient }) {
+export function IncidentConsole({ client, userRoles }: { client: ApiClient; userRoles: string[] }) {
   const [incidents, setIncidents] = useState<Incident[]>([]);
   const [status, setStatus] = useState<AsyncStatus>("idle");
   const [error, setError] = useState<ApiError | null>(null);
@@ -122,7 +122,7 @@ export function IncidentConsole({ client }: { client: ApiClient }) {
                 <span className={incident.priority === "Critical" ? "status-pill danger" : "status-pill warn"}>
                   {incident.priority} {incident.status}
                 </span>
-                {incident.status !== "Resolved" && (
+                {incident.status !== "Resolved" && userRoles.includes("Volunteer") && (
                   <button className="text-button" type="button" onClick={() => void resolve(incident.id)}>
                     Mark resolved
                   </button>
