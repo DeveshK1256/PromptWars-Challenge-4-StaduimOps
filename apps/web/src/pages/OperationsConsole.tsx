@@ -5,6 +5,7 @@ import type { AsyncStatus } from "../types";
 import { Metric } from "../components/Metric";
 import { RetryButton } from "../components/RetryButton";
 import { SectionHeader } from "../components/SectionHeader";
+import { Stadium3D } from "../components/Stadium3D";
 import { StatusNotice } from "../components/StatusNotice";
 
 export function OperationsConsole({ client }: { client: ApiClient }) {
@@ -62,6 +63,15 @@ export function OperationsConsole({ client }: { client: ApiClient }) {
           />
           <Metric label="Sustainability score" value={overview.averageSustainabilityScore.toFixed(1)} />
         </div>
+      )}
+      {zones.length > 0 && (
+        <article className="panel">
+          <h2>3D stadium crowd visualization</h2>
+          <Stadium3D
+            zones={zones.map((z) => ({ name: z.name, density: Math.round((z.currentDensity / z.maximumCapacity) * 100), status: z.status }))}
+            stadiumName={zones[0]?.stadiumName ?? "Stadium"}
+          />
+        </article>
       )}
 
       <article className="panel split-panel">

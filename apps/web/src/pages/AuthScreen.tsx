@@ -5,6 +5,7 @@ import { ApiClient, apiMode } from "../services/api";
 import { saveSession } from "../services/session";
 import type { AsyncStatus } from "../types";
 import { roleOptions } from "../types";
+import { AnimatedBackground } from "../components/AnimatedBackground";
 import { StatusNotice } from "../components/StatusNotice";
 
 export function AuthScreen({
@@ -47,6 +48,7 @@ export function AuthScreen({
 
   return (
     <main className="auth-layout">
+      <AnimatedBackground />
       <section className="auth-panel" aria-labelledby="auth-title">
         <div className="brand-lockup standalone">
           <div className="brand-mark" aria-hidden="true">
