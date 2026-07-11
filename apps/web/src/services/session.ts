@@ -32,7 +32,7 @@ export function saveSession(auth: AuthResponse, previous?: StoredSession | null)
     accessTokenExpiresAt: auth.accessTokenExpiresAt,
     user: auth.user,
     language: previous?.language ?? auth.user.preferredLanguage ?? "en",
-    theme: previous?.theme ?? "standard"
+    theme: previous?.theme ?? "standard",
   };
   localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
   return session;

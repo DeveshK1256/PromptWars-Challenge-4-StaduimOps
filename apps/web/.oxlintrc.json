@@ -1,0 +1,15 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "rules": {
+    "no-unused-vars": "error",
+    "no-console": "warn",
+    "eqeqeq": "error",
+    "no-debugger": "error"
+  },
+  "plugins": ["react", "react-hooks", "typescript"],
+  "env": {
+    "browser": true,
+    "es2022": true
+  },
+  "ignorePatterns": ["dist/", "node_modules/", "*.config.{js,ts}"]
+}

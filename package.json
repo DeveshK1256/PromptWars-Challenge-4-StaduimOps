@@ -10,7 +10,12 @@
     "build": "npm run build --workspace apps/web",
     "dev:web": "npm run dev --workspace apps/web",
     "test:web": "npm run test --workspace apps/web",
-    "test:web:run": "npm run test:run --workspace apps/web"
+    "test:web:run": "npm run test:run --workspace apps/web",
+    "lint": "npm run lint --workspace apps/web",
+    "lint:fix": "npm run lint:fix --workspace apps/web",
+    "format": "npm run format --workspace apps/web",
+    "format:check": "npm run format:check --workspace apps/web",
+    "type-check": "npm run type-check --workspace apps/web"
   },
   "engines": {
     "node": ">=24.13.0",
