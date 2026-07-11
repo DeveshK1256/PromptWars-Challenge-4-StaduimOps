@@ -148,10 +148,6 @@ export function App() {
           >
             <Menu aria-hidden="true" />
           </button>
-          <div>
-            <p className="eyeless-label">Signed in as</p>
-            <h1>{session.user.name}</h1>
-          </div>
           <div className="profile-strip">
             <UserRound aria-hidden="true" />
             <div>
