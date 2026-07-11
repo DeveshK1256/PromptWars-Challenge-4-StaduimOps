@@ -1,7 +1,15 @@
-import { Bot, Sparkles } from "lucide-react";
+import { Bot, Languages, Sparkles } from "lucide-react";
 import { FormEvent, useCallback, useEffect, useState } from "react";
-import type { AiAgent, AiChatResponse, AiKnowledgeDocument, ApiClient, ApiError } from "../services/api";
+import type {
+  AiAgent,
+  AiChatResponse,
+  AiKnowledgeDocument,
+  ApiClient,
+  ApiError,
+  TranslationResponse,
+} from "../services/api";
 import type { AsyncStatus } from "../types";
+import { supportedLanguages } from "../types";
 import { SectionHeader } from "../components/SectionHeader";
 import { StatusNotice } from "../components/StatusNotice";
 
@@ -11,6 +19,8 @@ export function AiAssistant({ client }: { client: ApiClient }) {
   const [messages, setMessages] = useState<Array<{ role: "user" | "assistant"; text: string; meta?: string }>>([]);
   const [agents, setAgents] = useState<AiAgent[]>([]);
   const [knowledge, setKnowledge] = useState<AiKnowledgeDocument[]>([]);
+  const [translation, setTranslation] = useState<TranslationResponse | null>(null);
+  const [translateStatus, setTranslateStatus] = useState<AsyncStatus>("idle");
 
   const loadMetadata = useCallback(async () => {
     try {
@@ -106,7 +116,7 @@ export function AiAssistant({ client }: { client: ApiClient }) {
         <div>
           <h2>Agent catalog</h2>
           <div className="list-stack">
-            {agents.slice(0, 5).map((agent) => (
+            {agents.map((agent) => (
               <div className="row-card" key={agent.key}>
                 <div>
                   <strong>{agent.displayName}</strong>
@@ -133,6 +143,71 @@ export function AiAssistant({ client }: { client: ApiClient }) {
             ))}
           </div>
         </div>
+      </article>
+      <article className="panel">
+        <h2>
+          <Languages aria-hidden="true" style={{ width: 18, height: 18, display: "inline", marginRight: 6 }} />
+          Multilingual translator
+        </h2>
+        <p className="muted">
+          Translate stadium announcements and fan guidance into any FIFA WC 2026 supported language.
+        </p>
+        <form
+          className="form-grid"
+          onSubmit={async (e: FormEvent<HTMLFormElement>) => {
+            e.preventDefault();
+            const data = new FormData(e.currentTarget);
+            const text = String(data.get("translateText") ?? "").trim();
+            const toLanguage = String(data.get("toLanguage") ?? "es");
+            if (!text) return;
+            setTranslateStatus("loading");
+            setTranslation(null);
+            try {
+              setTranslation(await client.translate({ text, fromLanguage: "en", toLanguage }));
+              setTranslateStatus("success");
+            } catch {
+              setTranslateStatus("error");
+            }
+          }}
+        >
+          <label>
+            Text to translate
+            <textarea
+              name="translateText"
+              rows={3}
+              required
+              placeholder="Welcome to Hard Rock Stadium! Follow the signs to your section."
+            />
+          </label>
+          <label>
+            Target language
+            <select name="toLanguage" defaultValue="es">
+              {supportedLanguages
+                .filter((lang) => lang.code !== "en")
+                .map((lang) => (
+                  <option key={lang.code} value={lang.code}>
+                    {lang.label}
+                  </option>
+                ))}
+            </select>
+          </label>
+          <button className="secondary-action" type="submit" disabled={translateStatus === "loading"}>
+            <Languages aria-hidden="true" />
+            Translate
+          </button>
+        </form>
+        {translation && (
+          <div className="translation-result" aria-live="polite">
+            <div className="translation-original">
+              <strong>{translation.fromLanguage.toUpperCase()}</strong>
+              <p>{translation.originalText}</p>
+            </div>
+            <div className="translation-translated">
+              <strong>{translation.toLanguage.toUpperCase()}</strong>
+              <p>{translation.translatedText}</p>
+            </div>
+          </div>
+        )}
       </article>
     </section>
   );

@@ -156,6 +156,60 @@ export type NotificationItem = {
   externalDeliveryStatus: string;
 };
 
+export type TransportStatus = {
+  id: string;
+  mode: string;
+  provider: string;
+  route: string;
+  status: string;
+  estimatedDelayMinutes: number;
+  nextArrival: string;
+  lastUpdated: string;
+};
+
+export type SustainabilityMetric = {
+  id: string;
+  stadiumName: string;
+  energyKwh: number;
+  energyTargetKwh: number;
+  waterLiters: number;
+  waterTargetLiters: number;
+  wasteKg: number;
+  wasteTargetKg: number;
+  recyclingRate: number;
+  carbonScore: number;
+  metricDate: string;
+  ecoTips: string[];
+};
+
+export type VolunteerTask = {
+  id: string;
+  title: string;
+  location: string;
+  status: string;
+  priority: string;
+  category: string;
+  startsAt: string;
+  endsAt: string;
+  description: string;
+};
+
+export type TranslationResponse = {
+  originalText: string;
+  translatedText: string;
+  fromLanguage: string;
+  toLanguage: string;
+  model: string;
+};
+
+export type LiveAlert = {
+  id: string;
+  type: string;
+  message: string;
+  timestamp: string;
+  severity: string;
+};
+
 const configuredApiBaseUrl = import.meta.env.VITE_API_BASE_URL?.trim();
 const API_BASE_URL = configuredApiBaseUrl || (import.meta.env.PROD ? "demo" : "http://localhost:5000/api/v1");
 
@@ -272,6 +326,36 @@ export class ApiClient {
       method: "POST",
       body: payload,
     });
+  }
+
+  async transportStatus() {
+    return this.request<TransportStatus[]>("/transport/status");
+  }
+
+  async sustainability(stadiumId: string) {
+    return this.request<SustainabilityMetric>(`/stadiums/${stadiumId}/sustainability`);
+  }
+
+  async volunteerTasks() {
+    return this.request<VolunteerTask[]>("/volunteer/tasks");
+  }
+
+  async updateVolunteerTask(id: string, status: string) {
+    return this.request<VolunteerTask>(`/volunteer/tasks/${id}`, {
+      method: "PATCH",
+      body: { status },
+    });
+  }
+
+  async translate(payload: { text: string; fromLanguage: string; toLanguage: string }) {
+    return this.request<TranslationResponse>("/ai/translate", {
+      method: "POST",
+      body: payload,
+    });
+  }
+
+  async liveAlerts() {
+    return this.request<LiveAlert[]>("/alerts/live");
   }
 
   private async request<T>(
@@ -398,8 +482,6 @@ const demoStadiumArrowhead: Stadium = {
   latitude: 39.0489,
   longitude: -94.4839,
 };
-
-
 
 const demoPois: PointOfInterest[] = [
   {
@@ -726,6 +808,34 @@ async function demoRequest<T>(path: string, body: unknown): Promise<T> {
     return createDemoNotification(body) as T;
   }
 
+  if (path === "/transport/status") {
+    return demoTransportStatuses as T;
+  }
+
+  if (path.startsWith("/stadiums/") && path.endsWith("/sustainability")) {
+    return demoSustainability as T;
+  }
+
+  if (path === "/volunteer/tasks" && !body) {
+    return readDemoList("stadium-ops-demo-volunteer-tasks", initialDemoVolunteerTasks) as T;
+  }
+
+  if (path.startsWith("/volunteer/tasks/") && body) {
+    return updateDemoVolunteerTask(path, body) as T;
+  }
+
+  if (path === "/volunteer/tasks" && body) {
+    return readDemoList("stadium-ops-demo-volunteer-tasks", initialDemoVolunteerTasks) as T;
+  }
+
+  if (path === "/ai/translate") {
+    return demoTranslate(body) as T;
+  }
+
+  if (path === "/alerts/live") {
+    return demoLiveAlerts() as T;
+  }
+
   throw {
     title: "Static demo route missing",
     detail: `The static demo adapter does not implement ${path}.`,
@@ -831,4 +941,227 @@ function readDemoList<T>(key: string, fallback: T[]): T[] {
 
 function demoId(prefix: string) {
   return `${prefix}-${crypto.randomUUID()}`;
+}
+
+// ─── Transport demo data ──────────────────────────────────────────────────────
+
+const demoTransportStatuses: TransportStatus[] = [
+  {
+    id: "transport-metro",
+    mode: "Metro",
+    provider: "Miami-Dade Transit",
+    route: "Metrorail Orange Line → Hard Rock Stadium",
+    status: "On Time",
+    estimatedDelayMinutes: 0,
+    nextArrival: new Date(Date.now() + 8 * 60 * 1000).toISOString(),
+    lastUpdated: new Date().toISOString(),
+  },
+  {
+    id: "transport-shuttle",
+    mode: "Shuttle",
+    provider: "FIFA Fan Shuttle",
+    route: "Downtown Miami → Hard Rock Stadium (Express)",
+    status: "On Time",
+    estimatedDelayMinutes: 0,
+    nextArrival: new Date(Date.now() + 12 * 60 * 1000).toISOString(),
+    lastUpdated: new Date().toISOString(),
+  },
+  {
+    id: "transport-bus",
+    mode: "Bus",
+    provider: "Miami-Dade Transit",
+    route: "Route 297 → Stadium NW Gate",
+    status: "Delayed",
+    estimatedDelayMinutes: 7,
+    nextArrival: new Date(Date.now() + 22 * 60 * 1000).toISOString(),
+    lastUpdated: new Date().toISOString(),
+  },
+  {
+    id: "transport-rideshare",
+    mode: "Rideshare",
+    provider: "Uber / Lyft",
+    route: "Designated pickup Zone D (NW 199th St)",
+    status: "High Demand",
+    estimatedDelayMinutes: 15,
+    nextArrival: new Date(Date.now() + 18 * 60 * 1000).toISOString(),
+    lastUpdated: new Date().toISOString(),
+  },
+  {
+    id: "transport-parking",
+    mode: "Parking",
+    provider: "Hard Rock Stadium Lots",
+    route: "Lot 18 (Accessible) — 340/500 spaces available",
+    status: "Available",
+    estimatedDelayMinutes: 0,
+    nextArrival: "",
+    lastUpdated: new Date().toISOString(),
+  },
+];
+
+// ─── Sustainability demo data ─────────────────────────────────────────────────
+
+const demoSustainability: SustainabilityMetric = {
+  id: "sustainability-hard-rock",
+  stadiumName: "Hard Rock Stadium",
+  energyKwh: 12450,
+  energyTargetKwh: 15000,
+  waterLiters: 8200,
+  waterTargetLiters: 12000,
+  wasteKg: 3100,
+  wasteTargetKg: 4000,
+  recyclingRate: 72,
+  carbonScore: 84,
+  metricDate: new Date().toISOString().split("T")[0],
+  ecoTips: [
+    "Use the Metro or FIFA Fan Shuttle to reduce carbon emissions by up to 60%",
+    "Refill your water bottle at any of the 24 hydration stations throughout the stadium",
+    "Sort waste into the color-coded bins — blue for recycling, green for compost, grey for landfill",
+    "Digital tickets eliminate 12 tonnes of paper waste per tournament day",
+    "LED pitch lighting uses 40% less energy than previous World Cup venues",
+  ],
+};
+
+// ─── Volunteer demo data ──────────────────────────────────────────────────────
+
+const initialDemoVolunteerTasks: VolunteerTask[] = [
+  {
+    id: "vol-task-1",
+    title: "Gate C Accessibility Assistance",
+    location: "Accessible Gate C, Ground Level, North",
+    status: "Assigned",
+    priority: "High",
+    category: "Accessibility",
+    startsAt: new Date(Date.now() + 30 * 60 * 1000).toISOString(),
+    endsAt: new Date(Date.now() + 150 * 60 * 1000).toISOString(),
+    description:
+      "Assist wheelchair users and mobility-impaired fans through Accessible Gate C. Coordinate with medical standby team.",
+  },
+  {
+    id: "vol-task-2",
+    title: "First Aid Station Standby",
+    location: "Medical Station 204, Level 2, West",
+    status: "In Progress",
+    priority: "High",
+    category: "Medical",
+    startsAt: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
+    endsAt: new Date(Date.now() + 180 * 60 * 1000).toISOString(),
+    description: "Support medical staff with fan triage, supply management, and communication with operations center.",
+  },
+  {
+    id: "vol-task-3",
+    title: "Recycling Station Monitoring",
+    location: "East Food Hall, Level 2, East",
+    status: "Assigned",
+    priority: "Normal",
+    category: "Sustainability",
+    startsAt: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+    endsAt: new Date(Date.now() + 240 * 60 * 1000).toISOString(),
+    description:
+      "Ensure fans use correct waste sorting bins. Track contamination rate and report to sustainability operations.",
+  },
+  {
+    id: "vol-task-4",
+    title: "Multilingual Fan Assistance",
+    location: "South Gates Plaza, Ground Level",
+    status: "Assigned",
+    priority: "Normal",
+    category: "Fan Experience",
+    startsAt: new Date(Date.now() + 45 * 60 * 1000).toISOString(),
+    endsAt: new Date(Date.now() + 210 * 60 * 1000).toISOString(),
+    description:
+      "Help international fans with wayfinding, ticket scanning, and translation support. Use the AI translator for languages you don't speak.",
+  },
+];
+
+// ─── Demo helpers for new features ────────────────────────────────────────────
+
+function updateDemoVolunteerTask(path: string, body: unknown): VolunteerTask {
+  const id = path.split("/").pop()!;
+  const payload = body as Partial<{ status: string }>;
+  const tasks = readDemoList("stadium-ops-demo-volunteer-tasks", initialDemoVolunteerTasks);
+  const next = tasks.map((task) => (task.id === id ? { ...task, status: payload.status || task.status } : task));
+  localStorage.setItem("stadium-ops-demo-volunteer-tasks", JSON.stringify(next));
+  return next.find((task) => task.id === id) || tasks[0];
+}
+
+const demoTranslations: Record<string, Record<string, string>> = {
+  es: {
+    default:
+      "¡Bienvenido al Estadio Hard Rock! El partido de cuartos de final entre Noruega e Inglaterra comienza a las 5:00 PM ET. Siga las señales hacia su sección.",
+  },
+  fr: {
+    default:
+      "Bienvenue au Hard Rock Stadium ! Le quart de finale entre la Norvège et l'Angleterre débute à 17h00 ET. Suivez les panneaux vers votre section.",
+  },
+  ar: {
+    default:
+      "مرحباً بكم في ملعب هارد روك! تبدأ مباراة ربع النهائي بين النرويج وإنجلترا في الساعة 5:00 مساءً بالتوقيت الشرقي. اتبع اللافتات إلى مقعدك.",
+  },
+  pt: {
+    default:
+      "Bem-vindo ao Hard Rock Stadium! A partida das quartas de final entre Noruega e Inglaterra começa às 17:00 ET. Siga as placas até a sua seção.",
+  },
+  de: {
+    default:
+      "Willkommen im Hard Rock Stadium! Das Viertelfinalspiel zwischen Norwegen und England beginnt um 17:00 Uhr ET. Folgen Sie den Schildern zu Ihrem Platz.",
+  },
+  ja: {
+    default:
+      "ハードロックスタジアムへようこそ！ノルウェー対イングランドの準々決勝は東部時間午後5時に開始します。案内表示に従ってお席へお進みください。",
+  },
+  ko: {
+    default:
+      "하드록 스타디움에 오신 것을 환영합니다! 노르웨이 대 잉글랜드 8강전이 동부시간 오후 5시에 시작됩니다. 안내 표지판을 따라 좌석으로 이동하세요.",
+  },
+  zh: {
+    default: "欢迎来到硬石体育场！挪威对阵英格兰的四分之一决赛将于东部时间下午5:00开始。请按照指示牌前往您的座位区域。",
+  },
+};
+
+function demoTranslate(body: unknown): TranslationResponse {
+  const payload = body as Partial<{ text: string; fromLanguage: string; toLanguage: string }>;
+  const target = payload.toLanguage || "es";
+  const translations = demoTranslations[target];
+  const translated = translations?.default || `[${target}] ${payload.text || "Translation unavailable"}`;
+  return {
+    originalText: payload.text || "",
+    translatedText: translated,
+    fromLanguage: payload.fromLanguage || "en",
+    toLanguage: target,
+    model: "static-demo",
+  };
+}
+
+function demoLiveAlerts(): LiveAlert[] {
+  const now = Date.now();
+  return [
+    {
+      id: "alert-1",
+      type: "Crowd",
+      message: "East Food Hall density at 82% — consider North Concourse alternatives",
+      timestamp: new Date(now - 2 * 60 * 1000).toISOString(),
+      severity: "warn",
+    },
+    {
+      id: "alert-2",
+      type: "Transport",
+      message: "Bus Route 297 delayed 7 minutes — Metro running on schedule",
+      timestamp: new Date(now - 5 * 60 * 1000).toISOString(),
+      severity: "info",
+    },
+    {
+      id: "alert-3",
+      type: "Sustainability",
+      message: "Recycling rate trending up: 72% — target 75% by end of match",
+      timestamp: new Date(now - 8 * 60 * 1000).toISOString(),
+      severity: "ok",
+    },
+    {
+      id: "alert-4",
+      type: "Operations",
+      message: "Quarter-Final Norway vs England — gates open in 2 hours",
+      timestamp: new Date(now - 12 * 60 * 1000).toISOString(),
+      severity: "info",
+    },
+  ];
 }

@@ -66,20 +66,30 @@ export function OperationsConsole({ client }: { client: ApiClient }) {
 
       <article className="panel split-panel">
         <div>
-          <h2>Crowd zones</h2>
+          <h2>Crowd density heatmap</h2>
           <div className="list-stack">
             {zones.length === 0 && <p className="muted">No crowd zones returned by the API.</p>}
-            {zones.map((zone) => (
-              <div className="row-card" key={zone.id}>
-                <div>
-                  <strong>{zone.name}</strong>
-                  <span>{zone.stadiumName}</span>
+            {zones.map((zone) => {
+              const percent = Math.round((zone.currentDensity / zone.maximumCapacity) * 100);
+              const tone = percent >= 80 ? "danger" : percent >= 60 ? "warn" : "ok";
+              return (
+                <div className="row-card crowd-heatmap-row" key={zone.id}>
+                  <div>
+                    <strong>{zone.name}</strong>
+                    <span>{zone.stadiumName}</span>
+                  </div>
+                  <div className="crowd-bar-container">
+                    <div className="gauge-track">
+                      <div className={`gauge-fill ${tone}`} style={{ width: `${percent}%` }} />
+                    </div>
+                    <span className={`gauge-percent ${tone}`}>
+                      {zone.currentDensity}/{zone.maximumCapacity} ({percent}%)
+                    </span>
+                  </div>
+                  <span className={`status-pill ${tone}`}>{zone.status}</span>
                 </div>
-                <span className={zone.status === "Congested" ? "status-pill danger" : "status-pill warn"}>
-                  {zone.currentDensity}/{zone.maximumCapacity} {zone.status}
-                </span>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
         <div>

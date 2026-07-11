@@ -1,24 +1,46 @@
-import { Bell, Bot, LogOut, Menu, Moon, ShieldAlert, Ticket, UserRound, Waves } from "lucide-react";
+import {
+  Bell,
+  Bot,
+  Bus,
+  HandHeart,
+  Leaf,
+  LogOut,
+  Menu,
+  Moon,
+  ShieldAlert,
+  Ticket,
+  UserRound,
+  Waves,
+} from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { ApiClient } from "./services/api";
 import { clearSession, loadSession, replaceSession, saveSession } from "./services/session";
 import type { StoredSession } from "./services/session";
+import { LiveTicker } from "./components/LiveTicker";
 import { AiAssistant } from "./pages/AiAssistant";
 import { AuthScreen } from "./pages/AuthScreen";
 import { FanConsole } from "./pages/FanConsole";
 import { IncidentConsole } from "./pages/IncidentConsole";
 import { NotificationConsole } from "./pages/NotificationConsole";
 import { OperationsConsole } from "./pages/OperationsConsole";
+import { SustainabilityDashboard } from "./pages/SustainabilityDashboard";
+import { TransportConsole } from "./pages/TransportConsole";
+import { VolunteerConsole } from "./pages/VolunteerConsole";
 import type { ViewKey } from "./types";
 
 const navItems: Array<{ key: ViewKey; label: string; icon: ReactNode }> = [
   { key: "fan", label: "Fan console", icon: <Ticket aria-hidden="true" /> },
   { key: "operations", label: "Command center", icon: <Waves aria-hidden="true" /> },
   { key: "ai", label: "AI assistant", icon: <Bot aria-hidden="true" /> },
+  { key: "transport", label: "Transportation", icon: <Bus aria-hidden="true" /> },
+  { key: "sustainability", label: "Sustainability", icon: <Leaf aria-hidden="true" /> },
+  { key: "volunteer", label: "Volunteer hub", icon: <HandHeart aria-hidden="true" /> },
   { key: "incidents", label: "Incidents", icon: <ShieldAlert aria-hidden="true" /> },
   { key: "notifications", label: "Notifications", icon: <Bell aria-hidden="true" /> },
 ];
+
+const DEFAULT_STADIUM_ID = "stadium-hard-rock-miami";
 
 export function App() {
   const [session, setSession] = useState<StoredSession | null>(() => loadSession());
@@ -113,6 +135,7 @@ export function App() {
       </aside>
 
       <main className="workspace" id="main-content">
+        <LiveTicker client={client} />
         <header className="topbar">
           <button
             className="icon-button mobile-only"
@@ -139,6 +162,9 @@ export function App() {
         {activeView === "fan" && <FanConsole client={client} />}
         {activeView === "operations" && <OperationsConsole client={client} />}
         {activeView === "ai" && <AiAssistant client={client} />}
+        {activeView === "transport" && <TransportConsole client={client} />}
+        {activeView === "sustainability" && <SustainabilityDashboard client={client} stadiumId={DEFAULT_STADIUM_ID} />}
+        {activeView === "volunteer" && <VolunteerConsole client={client} />}
         {activeView === "incidents" && <IncidentConsole client={client} />}
         {activeView === "notifications" && <NotificationConsole client={client} />}
       </main>
