@@ -379,15 +379,27 @@ function asString(value: unknown) {
   return typeof value === "string" ? value : undefined;
 }
 
-const demoStadium: Stadium = {
-  id: "3da80b77-2580-4dc9-9df1-3f478f86ef49",
-  name: "MetLife Stadium",
-  city: "East Rutherford",
+const demoStadiumHardRock: Stadium = {
+  id: "stadium-hard-rock-miami",
+  name: "Hard Rock Stadium",
+  city: "Miami Gardens",
   country: "United States",
-  capacity: 82500,
-  latitude: 40.8135,
-  longitude: -74.0745,
+  capacity: 65326,
+  latitude: 25.9579,
+  longitude: -80.2389,
 };
+
+const demoStadiumArrowhead: Stadium = {
+  id: "stadium-arrowhead-kc",
+  name: "Arrowhead Stadium",
+  city: "Kansas City",
+  country: "United States",
+  capacity: 76416,
+  latitude: 39.0489,
+  longitude: -94.4839,
+};
+
+
 
 const demoPois: PointOfInterest[] = [
   {
@@ -503,19 +515,28 @@ const demoKnowledge: AiKnowledgeDocument[] = [
 
 const demoCrowdZones: CrowdZone[] = [
   {
+    id: "crowd-south-gates",
+    stadiumName: demoStadiumHardRock.name,
+    name: "South Gates Plaza",
+    currentDensity: 71,
+    maximumCapacity: 100,
+    status: "Congested",
+    lastUpdated: new Date().toISOString(),
+  },
+  {
     id: "crowd-north-concourse",
-    stadiumName: demoStadium.name,
+    stadiumName: demoStadiumHardRock.name,
     name: "North Concourse",
-    currentDensity: 62,
+    currentDensity: 58,
     maximumCapacity: 100,
     status: "Elevated",
     lastUpdated: new Date().toISOString(),
   },
   {
     id: "crowd-east-food-hall",
-    stadiumName: demoStadium.name,
+    stadiumName: demoStadiumHardRock.name,
     name: "East Food Hall",
-    currentDensity: 78,
+    currentDensity: 82,
     maximumCapacity: 100,
     status: "Congested",
     lastUpdated: new Date().toISOString(),
@@ -587,19 +608,21 @@ async function demoRequest<T>(path: string, body: unknown): Promise<T> {
   }
 
   if (path === "/matches/today") {
+    // Quarter-Final 1 — Norway vs England at Hard Rock Stadium, Miami
+    // Kickoff: 5:00 PM ET (21:00 UTC) on July 11, 2026
     return {
-      id: "match-demo-1",
-      homeTeam: "USA",
-      awayTeam: "Canada",
-      startsAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-      stage: "Group Stage",
+      id: "match-qf1-norway-england",
+      homeTeam: "Norway",
+      awayTeam: "England",
+      startsAt: "2026-07-11T21:00:00Z",
+      stage: "Quarter-Final",
       status: "Scheduled",
-      stadium: demoStadium,
+      stadium: demoStadiumHardRock,
     } as T;
   }
 
   if (path === "/stadiums") {
-    return page([demoStadium]) as T;
+    return page([demoStadiumHardRock, demoStadiumArrowhead]) as T;
   }
 
   if (path.startsWith("/stadiums/") && path.endsWith("/pois")) {
@@ -676,14 +699,18 @@ async function demoRequest<T>(path: string, body: unknown): Promise<T> {
   if (path === "/operations/overview") {
     const incidents = readDemoList("stadium-ops-demo-incidents", initialDemoIncidents);
     return {
-      stadiumCount: 1,
-      matchCount: 1,
+      stadiumCount: 2,
+      matchCount: 2,
       openIncidentCount: incidents.filter((incident) => incident.status !== "Resolved").length,
       criticalIncidentCount: incidents.filter((incident) => incident.priority === "Critical").length,
       congestedZoneCount: demoCrowdZones.filter((zone) => zone.status === "Congested").length,
-      activeVolunteerTasks: 8,
-      averageSustainabilityScore: 82,
-      aiInsightReadiness: ["Static demo mode active", "Deploy ASP.NET API for live integrations"],
+      activeVolunteerTasks: 24,
+      averageSustainabilityScore: 87,
+      aiInsightReadiness: [
+        "FIFA WC 2026 Quarter-Final day active",
+        "2 venues operational (Miami · Kansas City)",
+        "Deploy ASP.NET API for live Vertex AI integrations",
+      ],
     } as T;
   }
 
