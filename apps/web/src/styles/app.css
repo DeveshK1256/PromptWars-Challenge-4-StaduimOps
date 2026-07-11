@@ -1092,7 +1092,21 @@ button:disabled {
   border-radius: 4px;
   letter-spacing: 0.05em;
   flex-shrink: 0;
+  z-index: 2;
+  position: relative;
   animation: ticker-pulse 2s ease-in-out infinite;
+}
+
+/* Solid mask after LIVE badge so text fades out behind it */
+.ticker-badge::after {
+  content: "";
+  position: absolute;
+  right: -24px;
+  top: -6px;
+  bottom: -6px;
+  width: 24px;
+  background: linear-gradient(to right, var(--surface-strong), transparent);
+  pointer-events: none;
 }
 
 @keyframes ticker-pulse {
@@ -1110,6 +1124,7 @@ button:disabled {
   gap: 60px;
   white-space: nowrap;
   min-width: max-content;
+  margin-left: 12px;
   animation: ticker-scroll 25s linear infinite;
 }
 
