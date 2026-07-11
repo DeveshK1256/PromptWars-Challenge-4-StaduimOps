@@ -1076,6 +1076,8 @@ button:disabled {
   border-bottom: 1px solid var(--line);
   overflow: hidden;
   font-size: 13px;
+  margin: -26px -26px 0 -26px;
+  padding: 8px 26px;
 }
 
 .ticker-badge {
