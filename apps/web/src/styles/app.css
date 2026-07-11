@@ -1324,3 +1324,37 @@ button:disabled {
   flex: 1;
   min-width: 120px;
 }
+
+/* ─── Google Services ──────────────────────────────────────────────────────── */
+
+.google-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.google-actions a {
+  text-decoration: none;
+}
+
+.google-maps-embed {
+  margin-top: 8px;
+  border-radius: var(--radius);
+  overflow: hidden;
+  border: 1px solid var(--line);
+}
+
+.google-maps-embed iframe {
+  display: block;
+}
+
+/* Google Translate widget overrides */
+#google_translate_element {
+  opacity: 0.85;
+  transition: opacity 0.2s ease;
+}
+
+#google_translate_element:hover {
+  opacity: 1;
+}

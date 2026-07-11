@@ -1,4 +1,4 @@
-import { MapPinned, Ticket } from "lucide-react";
+import { CalendarPlus, Map, MapPinned, Ticket } from "lucide-react";
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import type { ApiClient, ApiError, MatchSummary, NavigationRoute, PointOfInterest, Stadium } from "../services/api";
 import type { AsyncStatus } from "../types";
@@ -104,6 +104,26 @@ export function FanConsole({ client }: { client: ApiClient }) {
               <dd>{match.stadium.name}</dd>
             </div>
           </dl>
+          <div className="google-actions">
+            <a
+              className="secondary-action compact"
+              href={buildGoogleCalendarUrl(match)}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <CalendarPlus aria-hidden="true" style={{ width: 16, height: 16 }} />
+              Add to Google Calendar
+            </a>
+            <a
+              className="secondary-action compact"
+              href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(match.stadium.name + ", Miami, FL")}&travelmode=transit`}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Map aria-hidden="true" style={{ width: 16, height: 16 }} />
+              Google Maps Directions
+            </a>
+          </div>
         </article>
       )}
 
@@ -173,6 +193,45 @@ export function FanConsole({ client }: { client: ApiClient }) {
           </div>
         )}
       </article>
+
+      {selectedStadium && (
+        <article className="panel">
+          <h2>
+            <Map aria-hidden="true" style={{ width: 18, height: 18, display: "inline", marginRight: 6 }} />
+            Google Maps — {selectedStadium.name}
+          </h2>
+          <div className="google-maps-embed">
+            <iframe
+              title={`Google Maps — ${selectedStadium.name}`}
+              src={`https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3575.!2d-80.2388!3d25.958!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x88d9ad1e5684303f%3A0x31e3e7c1e9d6f2e2!2sHard%20Rock%20Stadium!5e0!3m2!1sen!2sus!4v1`}
+              width="100%"
+              height="350"
+              style={{ border: 0, borderRadius: "var(--radius)" }}
+              allowFullScreen
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+            />
+          </div>
+          <p className="muted" style={{ marginTop: 8 }}>
+            Powered by Google Maps Platform — tap for full navigation with live traffic, transit schedules, and walking directions.
+          </p>
+        </article>
+      )}
     </section>
   );
+}
+
+function buildGoogleCalendarUrl(match: MatchSummary): string {
+  const start = new Date(match.startsAt);
+  const end = new Date(start.getTime() + 3 * 60 * 60 * 1000); // 3 hours
+  const fmt = (d: Date) => d.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
+  const params = new URLSearchParams({
+    action: "TEMPLATE",
+    text: `FIFA WC 2026: ${match.homeTeam} vs ${match.awayTeam}`,
+    dates: `${fmt(start)}/${fmt(end)}`,
+    details: `${match.stage} — FIFA World Cup 2026\n\nVenue: ${match.stadium.name}\nCapacity: ${match.stadium.capacity.toLocaleString()}\n\nPowered by Stadium Ops`,
+    location: match.stadium.name,
+    ctz: "America/New_York",
+  });
+  return `https://calendar.google.com/calendar/render?${params.toString()}`;
 }
