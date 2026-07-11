@@ -29,13 +29,13 @@ import { TransportConsole } from "./pages/TransportConsole";
 import { VolunteerConsole } from "./pages/VolunteerConsole";
 import type { ViewKey } from "./types";
 
-const navItems: Array<{ key: ViewKey; label: string; icon: ReactNode }> = [
+const navItems: Array<{ key: ViewKey; label: string; icon: ReactNode; requiresRole?: string }> = [
   { key: "fan", label: "Fan console", icon: <Ticket aria-hidden="true" /> },
   { key: "operations", label: "Command center", icon: <Waves aria-hidden="true" /> },
   { key: "ai", label: "AI assistant", icon: <Bot aria-hidden="true" /> },
   { key: "transport", label: "Transportation", icon: <Bus aria-hidden="true" /> },
   { key: "sustainability", label: "Sustainability", icon: <Leaf aria-hidden="true" /> },
-  { key: "volunteer", label: "Volunteer hub", icon: <HandHeart aria-hidden="true" /> },
+  { key: "volunteer", label: "Volunteer hub", icon: <HandHeart aria-hidden="true" />, requiresRole: "Volunteer" },
   { key: "incidents", label: "Incidents", icon: <ShieldAlert aria-hidden="true" /> },
   { key: "notifications", label: "Notifications", icon: <Bell aria-hidden="true" /> },
 ];
@@ -97,7 +97,9 @@ export function App() {
           </div>
         </div>
         <nav className="nav-stack">
-          {navItems.map((item) => (
+          {navItems
+            .filter((item) => !item.requiresRole || session.user.roles.includes(item.requiresRole))
+            .map((item) => (
             <button
               key={item.key}
               className={activeView === item.key ? "nav-item active" : "nav-item"}

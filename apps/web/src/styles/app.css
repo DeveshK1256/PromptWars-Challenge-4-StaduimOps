@@ -1105,10 +1105,22 @@ button:disabled {
 
 .ticker-track {
   display: flex;
-  gap: 24px;
-  overflow-x: auto;
+  gap: 48px;
   white-space: nowrap;
-  scrollbar-width: none;
+  animation: ticker-scroll 30s linear infinite;
+}
+
+.ticker-track:hover {
+  animation-play-state: paused;
+}
+
+@keyframes ticker-scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
 }
 
 .ticker-track::-webkit-scrollbar {

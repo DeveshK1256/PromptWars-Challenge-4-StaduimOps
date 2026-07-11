@@ -28,8 +28,9 @@ export function LiveTicker({ client }: { client: ApiClient }) {
         LIVE
       </span>
       <div className="ticker-track">
-        {alerts.map((alert) => (
-          <span className={`ticker-item ${alert.severity}`} key={alert.id}>
+        {/* Render twice for seamless infinite scroll loop */}
+        {[...alerts, ...alerts].map((alert, i) => (
+          <span className={`ticker-item ${alert.severity}`} key={`${alert.id}-${i}`}>
             <strong>{alert.type}:</strong> {alert.message}
           </span>
         ))}
