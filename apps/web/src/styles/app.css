@@ -1107,9 +1107,10 @@ button:disabled {
 
 .ticker-track {
   display: flex;
-  gap: 48px;
+  gap: 60px;
   white-space: nowrap;
-  animation: ticker-scroll 30s linear infinite;
+  min-width: max-content;
+  animation: ticker-scroll 25s linear infinite;
 }
 
 .ticker-track:hover {
@@ -1132,6 +1133,12 @@ button:disabled {
 .ticker-item {
   flex-shrink: 0;
   color: var(--ink);
+  padding-right: 60px;
+  border-right: 1px solid var(--line);
+}
+
+.ticker-item:last-child {
+  border-right: none;
 }
 
 .ticker-item.warn {
@@ -1143,7 +1150,7 @@ button:disabled {
 }
 
 .ticker-item strong {
-  margin-right: 4px;
+  margin-right: 6px;
 }
 
 /* ─── Gauge Bars (Sustainability / Crowd) ──────────────────────────────────── */
