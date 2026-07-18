@@ -2,6 +2,9 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using Microsoft.IdentityModel.Tokens;
 using StadiumOps.ApiTests.Infrastructure;
 
 namespace StadiumOps.ApiTests;
@@ -149,6 +152,35 @@ public sealed class TokenRefreshAndRevokeTests(StadiumOpsApiFactory factory) : I
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         var envelope = await ReadEnvelope<AuthPayload>(response);
         return envelope.Data;
+    }
+
+    [Fact]
+    public async Task Me_WithExpiredToken_ReturnsUnauthorized()
+    {
+        var client = factory.CreateClient();
+
+        var key = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes("tests-only-change-this-key-before-production-32chars"));
+        var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+        var claims = new List<Claim>
+        {
+            new(ClaimTypes.NameIdentifier, Guid.NewGuid().ToString()),
+            new(ClaimTypes.Email, "expired@example.com")
+        };
+
+        var expiredToken = new JwtSecurityToken(
+            issuer: "stadium-ops-tests",
+            audience: "stadium-ops-web",
+            claims: claims,
+            notBefore: DateTime.UtcNow.AddMinutes(-20),
+            expires: DateTime.UtcNow.AddMinutes(-5),
+            signingCredentials: credentials);
+
+        var tokenString = new JwtSecurityTokenHandler().WriteToken(expiredToken);
+
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", tokenString);
+        var response = await client.GetAsync("/api/v1/auth/me");
+
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
 
     private sealed record Envelope<T>(bool Success, T Data, string CorrelationId);
