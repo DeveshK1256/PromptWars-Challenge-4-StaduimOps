@@ -1,0 +1,9 @@
+<Project>
+  <PropertyGroup>
+    <_StadiumOpsOutputRoot Condition="'$(TEMP)' != ''">$(TEMP)\StadiumOps\</_StadiumOpsOutputRoot>
+    <_StadiumOpsOutputRoot Condition="'$(_StadiumOpsOutputRoot)' == '' and '$(TMPDIR)' != ''">$(TMPDIR)/StadiumOps/</_StadiumOpsOutputRoot>
+    <_StadiumOpsOutputRoot Condition="'$(_StadiumOpsOutputRoot)' == ''">$(MSBuildThisFileDirectory).artifacts/</_StadiumOpsOutputRoot>
+    <BaseIntermediateOutputPath>$(_StadiumOpsOutputRoot)obj\$(MSBuildProjectName)\</BaseIntermediateOutputPath>
+    <BaseOutputPath>$(_StadiumOpsOutputRoot)bin\$(MSBuildProjectName)\</BaseOutputPath>
+  </PropertyGroup>
+</Project>

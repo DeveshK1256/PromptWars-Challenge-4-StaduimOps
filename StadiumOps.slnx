@@ -1,0 +1,6 @@
+<Solution>
+  <Folder Name="/tests/">
+    <Project Path="tests/StadiumOps.ApiTests/StadiumOps.ApiTests.csproj" />
+    <Project Path="tests/StadiumOps.UnitTests/StadiumOps.UnitTests.csproj" />
+  </Folder>
+</Solution>
