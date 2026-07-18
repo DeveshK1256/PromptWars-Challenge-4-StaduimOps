@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using StadiumOps.Api.Responses;
+using StadiumOps.Application.Features;
 using StadiumOps.Domain.Operations;
 using StadiumOps.Infrastructure.Persistence;
 
@@ -123,12 +124,3 @@ public static class SustainabilityEndpoints
         });
     }
 }
-
-public sealed record ReportSustainabilityRequest(
-    Guid StadiumId,
-    decimal EnergyKwh,
-    decimal WaterLiters,
-    decimal WasteKg,
-    decimal RecyclingRate,
-    decimal CarbonScore,
-    DateOnly? MetricDate);

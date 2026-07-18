@@ -153,6 +153,28 @@ public static class SeedData
             MetricDate = DateOnly.FromDateTime(DateTime.UtcNow)
         });
 
+        dbContext.VolunteerTasks.AddRange(
+            new VolunteerTask
+            {
+                VolunteerUserId = Guid.Parse("b114d101-de3f-42e5-bc09-9069695662bb"),
+                Title = "Assist Fans with Navigation at Section 102",
+                Location = "Section 102 Entrance",
+                Status = "Assigned",
+                Priority = "Normal",
+                StartsAt = DateTimeOffset.UtcNow,
+                EndsAt = DateTimeOffset.UtcNow.AddHours(4)
+            },
+            new VolunteerTask
+            {
+                VolunteerUserId = Guid.Parse("b114d101-de3f-42e5-bc09-9069695662bb"),
+                Title = "Distribute Recycling Bags at Gate C",
+                Location = "Gate C",
+                Status = "InProgress",
+                Priority = "High",
+                StartsAt = DateTimeOffset.UtcNow.AddHours(-1),
+                EndsAt = DateTimeOffset.UtcNow.AddHours(3)
+            });
+
         await dbContext.SaveChangesAsync(cancellationToken);
         await SeedAiKnowledgeDocumentsAsync(dbContext, cancellationToken);
     }

@@ -76,7 +76,7 @@ public sealed class OutboxPublisherService(
                 {
                     var pubsubMessage = new PubsubMessage
                     {
-                        Data = ByteString.CopyFromUtf8(evt.EventPayload),
+                        Data = ByteString.CopyFromUtf8(evt.PayloadJson),
                         Attributes =
                         {
                             ["EventType"] = evt.EventType,

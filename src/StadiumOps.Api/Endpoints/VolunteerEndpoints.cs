@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using StadiumOps.Api.Extensions;
 using StadiumOps.Api.Responses;
+using StadiumOps.Application.Features;
 using StadiumOps.Domain.Operations;
 using StadiumOps.Infrastructure.Persistence;
 
@@ -115,7 +116,14 @@ public static class VolunteerEndpoints
         }
 
         task.Status = request.Status;
-        await dbContext.SaveChangesAsync(cancellationToken);
+        try
+        {
+            await dbContext.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            return ApiResults.Conflict(context, "This volunteer task has been modified by another operator. Please reload and try again.");
+        }
 
         return ApiResults.Ok(context, new
         {
@@ -130,13 +138,3 @@ public static class VolunteerEndpoints
         });
     }
 }
-
-public sealed record CreateVolunteerTaskRequest(
-    Guid VolunteerUserId,
-    string Title,
-    string Location,
-    string? Priority,
-    DateTimeOffset? StartsAt,
-    DateTimeOffset? EndsAt);
-
-public sealed record UpdateVolunteerTaskStatusRequest(string Status);

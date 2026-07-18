@@ -167,7 +167,14 @@ public static class IncidentEndpoints
                 incident.AssignedTeam
             },
             context.GetCorrelationId());
-        await dbContext.SaveChangesAsync(cancellationToken);
+        try
+        {
+            await dbContext.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            return ApiResults.Conflict(context, "This incident has been modified by another operator. Please reload and try again.");
+        }
 
         return ApiResults.Ok(context, ToResponse(incident));
     }

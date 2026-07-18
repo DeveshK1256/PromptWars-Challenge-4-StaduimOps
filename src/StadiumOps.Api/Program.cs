@@ -89,6 +89,7 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
+app.UseMiddleware<SecurityHeadersMiddleware>();
 app.UseCors("web");
 app.UseRateLimiter();
 

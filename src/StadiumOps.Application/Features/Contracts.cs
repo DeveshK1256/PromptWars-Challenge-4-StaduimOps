@@ -153,3 +153,22 @@ public sealed record NotificationResponse(
     string Priority,
     bool IsRead,
     string ExternalDeliveryStatus);
+
+public sealed record ReportSustainabilityRequest(
+    Guid StadiumId,
+    decimal EnergyKwh,
+    decimal WaterLiters,
+    decimal WasteKg,
+    decimal RecyclingRate,
+    decimal CarbonScore,
+    DateOnly? MetricDate);
+
+public sealed record CreateVolunteerTaskRequest(
+    Guid VolunteerUserId,
+    string Title,
+    string Location,
+    string? Priority,
+    DateTimeOffset? StartsAt,
+    DateTimeOffset? EndsAt);
+
+public sealed record UpdateVolunteerTaskStatusRequest(string Status);

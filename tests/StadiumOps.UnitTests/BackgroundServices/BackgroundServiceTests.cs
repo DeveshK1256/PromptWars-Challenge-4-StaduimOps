@@ -75,4 +75,60 @@ public sealed class BackgroundServiceTests
         Assert.Equal("Published", updatedEvent.PublishStatus);
         Assert.NotNull(updatedEvent.PublishedAt);
     }
+
+    [Fact]
+    public async Task OutboxPublisherService_MovesToDeadLetter_OnRepeatedFailures()
+    {
+        var options = new DbContextOptionsBuilder<StadiumOpsDbContext>()
+            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+            .Options;
+
+        using var dbContext = new StadiumOpsDbContext(options);
+        var pendingEvent = new IntegrationEventOutbox
+        {
+            EventType = "TestEvent",
+            AggregateType = "Match",
+            AggregateId = Guid.NewGuid(),
+            PayloadJson = null!,
+            RetryCount = 4,
+            PublishStatus = "Pending"
+        };
+        dbContext.IntegrationEventOutbox.Add(pendingEvent);
+        await dbContext.SaveChangesAsync();
+
+        var serviceProviderMock = new Mock<IServiceProvider>();
+        serviceProviderMock
+            .Setup(x => x.GetService(typeof(StadiumOpsDbContext)))
+            .Returns(dbContext);
+
+        var serviceScopeMock = new Mock<IServiceScope>();
+        serviceScopeMock
+            .Setup(x => x.ServiceProvider)
+            .Returns(serviceProviderMock.Object);
+
+        var scopeFactoryMock = new Mock<IServiceScopeFactory>();
+        scopeFactoryMock
+            .Setup(x => x.CreateScope())
+            .Returns(serviceScopeMock.Object);
+
+        var configurationMock = new Mock<IConfiguration>();
+        var loggerMock = new Mock<ILogger<OutboxPublisherService>>();
+
+        var service = new OutboxPublisherService(
+            scopeFactoryMock.Object,
+            configurationMock.Object,
+            loggerMock.Object);
+
+        var method = typeof(OutboxPublisherService)
+            .GetMethod("ProcessPendingEventsAsync", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        
+        Assert.NotNull(method);
+        var task = (Task)method.Invoke(service, [CancellationToken.None])!;
+        await task;
+
+        var updatedEvent = await dbContext.IntegrationEventOutbox.FirstAsync();
+        Assert.Equal(5, updatedEvent.RetryCount);
+        Assert.Equal("DeadLetter", updatedEvent.PublishStatus);
+        Assert.Contains("Value cannot be null", updatedEvent.LastError);
+    }
 }
