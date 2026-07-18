@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using StadiumOps.Api.Extensions;
 using Microsoft.EntityFrameworkCore;
 using StadiumOps.Api.Responses;
 using StadiumOps.Application.Abstractions;

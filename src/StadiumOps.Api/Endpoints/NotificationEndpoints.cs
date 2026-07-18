@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using StadiumOps.Api.Extensions;
 using StadiumOps.Api.Responses;
 using StadiumOps.Application.Abstractions;
 using StadiumOps.Application.Events;
