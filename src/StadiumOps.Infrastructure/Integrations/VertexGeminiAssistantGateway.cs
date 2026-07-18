@@ -20,24 +20,11 @@ public sealed class VertexGeminiAssistantGateway(IOptions<VertexAiOptions> optio
                 "Vertex AI is not configured. Set VertexAI:ProjectId and Google Application Default Credentials before using AI chat.");
         }
 
-        var prompt = $"""
-        You are the FIFA World Cup 2026 Smart Stadium assistant.
-        Answer in language: {request.PreferredLanguage}.
-        Treat all emergency, security, and medical topics as guidance only and tell users to follow official venue staff and emergency responders.
-        Do not invent live facts. If real-time data is unavailable, say so.
-
-        Context:
-        {request.Context ?? "No additional context supplied."}
-
-        Fan or operator request:
-        {request.Prompt}
-        """;
-
         var client = new Client(project: config.ProjectId, location: config.Location, vertexAI: true);
         var content = new Content
         {
             Role = "user",
-            Parts = [new Part { Text = prompt }]
+            Parts = [new Part { Text = request.Prompt }]
         };
 
         var intentTask = DetectIntentSemanticallyAsync(client, config.Model, request.Prompt, cancellationToken);

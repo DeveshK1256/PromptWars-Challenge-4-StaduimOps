@@ -51,10 +51,10 @@ public static class IncidentEndpoints
         var incident = new IncidentReport
         {
             ReporterId = userId.Value,
-            Category = request.Category.Trim(),
-            Severity = request.Severity.Trim(),
-            Location = request.Location.Trim(),
-            Description = request.Description.Trim(),
+            Category = StadiumOps.Application.Security.InputSanitizer.Sanitize(request.Category),
+            Severity = StadiumOps.Application.Security.InputSanitizer.Sanitize(request.Severity),
+            Location = StadiumOps.Application.Security.InputSanitizer.Sanitize(request.Location),
+            Description = StadiumOps.Application.Security.InputSanitizer.Sanitize(request.Description),
             Priority = IncidentPrioritizer.Prioritize(request.Category, request.Severity),
             Status = "Open",
             AssignedTeam = IncidentPrioritizer.AssignTeam(request.Category)

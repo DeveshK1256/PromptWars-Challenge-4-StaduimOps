@@ -14,6 +14,10 @@ public sealed class JwtOptions
     {
         if (!string.IsNullOrWhiteSpace(SigningKey))
         {
+            if (SigningKey.Length < 32)
+            {
+                throw new InvalidOperationException("Jwt:SigningKey must be at least 32 characters (256 bits) long to prevent signature forgery.");
+            }
             return Encoding.UTF8.GetBytes(SigningKey);
         }
 

@@ -23,7 +23,7 @@ public sealed class DatabaseInitializerService(
 
             if (dbContext.Database.IsRelational())
             {
-                logger.LogInformation("Applying pending migrations...");
+                logger.LogWarning("Applying database migrations automatically on startup. For production stability and security, apply migrations via isolated CI/CD workflows.");
                 await dbContext.Database.MigrateAsync(cancellationToken);
             }
 

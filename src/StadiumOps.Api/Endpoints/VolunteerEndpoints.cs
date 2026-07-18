@@ -65,9 +65,9 @@ public static class VolunteerEndpoints
         var task = new VolunteerTask
         {
             VolunteerUserId = request.VolunteerUserId,
-            Title = request.Title,
-            Location = request.Location,
-            Priority = request.Priority ?? "Normal",
+            Title = StadiumOps.Application.Security.InputSanitizer.Sanitize(request.Title),
+            Location = StadiumOps.Application.Security.InputSanitizer.Sanitize(request.Location),
+            Priority = StadiumOps.Application.Security.InputSanitizer.Sanitize(request.Priority ?? "Normal"),
             Status = "Assigned",
             StartsAt = request.StartsAt ?? DateTimeOffset.UtcNow,
             EndsAt = request.EndsAt ?? DateTimeOffset.UtcNow.AddHours(4)
