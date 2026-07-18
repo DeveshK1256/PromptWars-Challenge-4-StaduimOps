@@ -30,6 +30,16 @@ public static class DependencyInjection
     {
         services.AddMemoryCache();
 
+        var redisConnection = configuration.GetConnectionString("Redis");
+        if (!string.IsNullOrWhiteSpace(redisConnection))
+        {
+            services.AddStackExchangeRedisCache(options =>
+            {
+                options.Configuration = redisConnection;
+                options.InstanceName = "StadiumOps:";
+            });
+        }
+
         services.AddOptions<JwtOptions>()
             .Bind(configuration.GetSection("Jwt"))
             .Validate(x => x.AccessTokenMinutes > 0, "Jwt:AccessTokenMinutes must be greater than zero.")
@@ -132,6 +142,7 @@ public static class DependencyInjection
             .AddCheck<DatabaseReadinessCheck>("database");
             
         services.AddHostedService<OutboxPublisherService>();
+        services.AddHostedService<DatabaseInitializerService>();
 
         return services;
     }

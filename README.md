@@ -1,5 +1,8 @@
 # Smart Stadium & Tournament Operations Platform
 
+[![Live Demo](https://img.shields.io/badge/Demo-Live%20on%20Netlify-emerald?style=for-the-badge&logo=netlify)](https://promptwars-challenge-4-staduimops.netlify.app)
+[![GitHub Repository](https://img.shields.io/badge/GitHub-Repository-blue?style=for-the-badge&logo=github)](https://github.com/DeveshK1256/PromptWars-Challenge-4-StaduimOps)
+
 Enterprise scaffold for a Generative AI-enabled Smart Stadium and Tournament Operations Platform for FIFA World Cup 2026.
 
 ## Implemented

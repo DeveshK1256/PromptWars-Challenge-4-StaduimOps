@@ -124,13 +124,6 @@ app.MapOperationsEndpoints();
 app.MapNotificationEndpoints();
 app.MapHub<OperationsHub>("/hubs/operations").RequireAuthorization();
 
-using (var scope = app.Services.CreateScope())
-{
-    var dbContext = scope.ServiceProvider.GetRequiredService<StadiumOpsDbContext>();
-    var roleManager = scope.ServiceProvider.GetRequiredService<Microsoft.AspNetCore.Identity.RoleManager<ApplicationRole>>();
-    await SeedData.InitializeAsync(dbContext, roleManager);
-}
-
 app.Run();
 
 public partial class Program;
