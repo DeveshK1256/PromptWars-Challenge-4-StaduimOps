@@ -122,6 +122,9 @@ app.MapAiEndpoints();
 app.MapIncidentEndpoints();
 app.MapOperationsEndpoints();
 app.MapNotificationEndpoints();
+app.MapTransportEndpoints();
+app.MapSustainabilityEndpoints();
+app.MapVolunteerEndpoints();
 app.MapHub<OperationsHub>("/hubs/operations").RequireAuthorization();
 
 app.Run();
