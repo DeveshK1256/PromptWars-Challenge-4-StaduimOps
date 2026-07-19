@@ -61,13 +61,23 @@ public sealed class AiOrchestrator(IAiAssistantGateway gateway) : IAiOrchestrato
                 context.UserContext),
             cancellationToken);
 
+        var decision = AiDecisionSupportEngine.Evaluate(context.Prompt, context.UserContext);
+        var finalResponse = result.Text;
+        if (!string.IsNullOrWhiteSpace(decision.RecommendationText))
+        {
+            finalResponse += $"\n\n---\n🤖 **AI DECISION SUPPORT ENGINE**\n{decision.RecommendationText}\n🔍 **Explainability (Why this advice?):**\n{decision.ExplainabilityLogic}\n🛡️ **Human Override Rules:** {decision.HumanOverrideProtocol}\n📈 **Inference Confidence:** {decision.ConfidenceScore:P0}";
+        }
+
+        var finalConfidence = Math.Max(detection.ConfidenceScore, decision.ConfidenceScore);
+        var escalationRequired = safety.EscalationRecommended || detection.EscalationRecommended || decision.EscalationAdvised || detection.ConfidenceScore < 0.70m;
+
         return new AiOrchestrationResult(
-            result.Text,
+            finalResponse,
             detection.Intent,
             agent.Key,
             agent.DisplayName,
-            detection.ConfidenceScore,
-            safety.EscalationRecommended || detection.EscalationRecommended || detection.ConfidenceScore < 0.70m,
+            finalConfidence,
+            escalationRequired,
             result.Model,
             result.TokensUsed,
             safety.GuardrailNotes,
