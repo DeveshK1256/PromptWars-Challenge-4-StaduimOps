@@ -61,9 +61,21 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("web", policy =>
     {
-        policy.WithOrigins(builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? ["http://localhost:5173"])
+        var origins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>();
+        
+        if (builder.Environment.IsProduction())
+        {
+            origins = ["https://promptwars-challenge-4-staduimops.netlify.app"];
+        }
+        else if (origins is null || origins.Length == 0)
+        {
+            origins = ["http://localhost:5173", "http://localhost:3000"];
+        }
+
+        policy.WithOrigins(origins)
             .AllowAnyHeader()
-            .AllowAnyMethod();
+            .AllowAnyMethod()
+            .AllowCredentials();
     });
 });
 

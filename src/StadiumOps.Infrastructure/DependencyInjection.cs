@@ -143,6 +143,7 @@ public static class DependencyInjection
             
         services.AddHostedService<OutboxPublisherService>();
         services.AddHostedService<DatabaseInitializerService>();
+        services.AddHostedService<PubSubConsumerService>();
 
         return services;
     }

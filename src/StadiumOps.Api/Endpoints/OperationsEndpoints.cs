@@ -1,7 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using Microsoft.AspNetCore.SignalR;
+using StadiumOps.Api.Hubs;
 using StadiumOps.Api.Responses;
 using StadiumOps.Application.Features;
+using StadiumOps.Domain.Operations;
 using StadiumOps.Infrastructure.Integrations;
 using StadiumOps.Infrastructure.Persistence;
 
@@ -17,6 +20,7 @@ public static class OperationsEndpoints
 
         group.MapGet("/operations/overview", OverviewAsync);
         group.MapGet("/crowd/zones", CrowdZonesAsync);
+        group.MapPost("/crowd/zones/{id:guid}/density", UpdateDensityAsync);
 
         return group;
     }
@@ -82,4 +86,55 @@ public static class OperationsEndpoints
 
         return ApiResults.Ok(context, zones);
     }
+
+    private static async Task<IResult> UpdateDensityAsync(
+        Guid id,
+        UpdateCrowdDensityRequest request,
+        StadiumOpsDbContext dbContext,
+        IHubContext<OperationsHub> hubContext,
+        HttpContext context,
+        CancellationToken cancellationToken)
+    {
+        if (request.CurrentDensity < 0)
+        {
+            return ApiResults.ValidationProblem(context, "Current density cannot be negative.");
+        }
+
+        var zone = await dbContext.CrowdZones
+            .Include(x => x.Stadium)
+            .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+            
+        if (zone is null)
+        {
+            return ApiResults.NotFound(context, "Crowd zone not found.");
+        }
+
+        zone.CurrentDensity = request.CurrentDensity;
+        var pct = zone.MaximumCapacity > 0 ? (double)zone.CurrentDensity / zone.MaximumCapacity : 0.0;
+        zone.Status = pct >= 0.85 ? "Congested" : pct >= 0.70 ? "Crowded" : "Normal";
+        zone.LastUpdated = DateTimeOffset.UtcNow;
+
+        try
+        {
+            await dbContext.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            return ApiResults.Conflict(context, "This crowd zone was updated by another system. Please retry.");
+        }
+
+        var response = new CrowdZoneResponse(
+            zone.Id,
+            zone.Stadium?.Name ?? "Stadium",
+            zone.Name,
+            zone.CurrentDensity,
+            zone.MaximumCapacity,
+            zone.Status,
+            zone.LastUpdated);
+
+        await hubContext.Clients.Group("operations").SendAsync("CrowdZoneUpdated", response, cancellationToken);
+
+        return ApiResults.Ok(context, response);
+    }
+}
 }

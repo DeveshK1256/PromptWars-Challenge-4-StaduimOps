@@ -1,6 +1,8 @@
 using System.Security.Claims;
 using StadiumOps.Api.Extensions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.SignalR;
+using StadiumOps.Api.Hubs;
 using StadiumOps.Api.Responses;
 using StadiumOps.Application.Abstractions;
 using StadiumOps.Application.Events;
@@ -31,6 +33,7 @@ public static class IncidentEndpoints
         StadiumOpsDbContext dbContext,
         IAuditWriter auditWriter,
         IIntegrationEventOutboxWriter outboxWriter,
+        IHubContext<OperationsHub> hubContext,
         HttpContext context,
         CancellationToken cancellationToken)
     {
@@ -86,6 +89,7 @@ public static class IncidentEndpoints
             context.GetCorrelationId());
 
         await dbContext.SaveChangesAsync(cancellationToken);
+        await hubContext.Clients.Group("operations").SendAsync("IncidentCreated", ToResponse(incident), cancellationToken);
         return ApiResults.Created(context, $"/api/v1/incidents/{incident.Id}", ToResponse(incident));
     }
 
@@ -130,6 +134,7 @@ public static class IncidentEndpoints
         StadiumOpsDbContext dbContext,
         IAuditWriter auditWriter,
         IIntegrationEventOutboxWriter outboxWriter,
+        IHubContext<OperationsHub> hubContext,
         HttpContext context,
         CancellationToken cancellationToken)
     {
@@ -176,6 +181,7 @@ public static class IncidentEndpoints
             return ApiResults.Conflict(context, "This incident has been modified by another operator. Please reload and try again.");
         }
 
+        await hubContext.Clients.Group("operations").SendAsync("IncidentUpdated", ToResponse(incident), cancellationToken);
         return ApiResults.Ok(context, ToResponse(incident));
     }
 

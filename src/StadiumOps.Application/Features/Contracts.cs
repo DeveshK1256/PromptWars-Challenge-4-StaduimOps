@@ -172,3 +172,5 @@ public sealed record CreateVolunteerTaskRequest(
     DateTimeOffset? EndsAt);
 
 public sealed record UpdateVolunteerTaskStatusRequest(string Status);
+
+public sealed record UpdateCrowdDensityRequest(int CurrentDensity);
