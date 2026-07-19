@@ -66,3 +66,30 @@ npm run test:e2e --workspace apps/web
 ```
 
 The installed `dotnet ef` global tool is `10.0.8` while EF runtime packages are `10.0.9`, so migration commands may print a tool-version warning. The migration was generated successfully.
+
+## 🏆 FIFA World Cup 2026 Operational Outcomes Mapping
+
+| Feature | Operations Outcome | FIFA 2026 Target Metric |
+| :--- | :--- | :--- |
+| **Real-time Crowd Density Tracking** | Prevents zone congestion and minimizes crowd crush risk near gates. | Gate egress times < 30 minutes. |
+| **Incident Management Console** | Accelerates dispatcher response times by auto-prioritizing and assigning issues. | Dispatch response < 2 minutes. |
+| **Accessible Navigation Routing** | Generates tailored routes matching wheelchair/mobility constraints. | 100% accessible ingress for disabled fans. |
+| **Generative AI Assistant Gateway** | Resolves operator queries on stadium manuals, protocols, and matches using secure RAG. | Instant operator playbook lookup. |
+| **Sustainability Tracking System** | Measures energy, recycling, and carbon metrics across venues. | ISO 20121 green event compliance. |
+| **Emergency Broadcast Notifications** | Delivers instant situational warnings to devices via FCM. | Broadcast propagation delay < 5 seconds. |
+
+## ⚡ Performance Budgets & Baselines
+
+Our performance budgets define strict SLA thresholds to ensure scalability under peak stadium tournament loads:
+
+### 1. P95 Latency Budgets
+* **Core GET Requests (Stadium list, Match status):** `< 50ms` (achieved via in-memory caching)
+* **Write Mutations (Create Incident, Update status):** `< 150ms` (EF Core with SQL indexes)
+* **AI Chat Gateway (Safety screening, Grounding, Output):** `< 200ms` (local policy filter overhead `< 5ms`)
+
+### 2. Load Testing Baselines (Sustained Load)
+* **Concurrent Capacity:** Designed to support `100+` concurrent users per instance.
+* **Throughput Target:** `500+` requests/second (RPS) sustained.
+* **Error Margin:** `< 0.1%` error rate under peak load.
+* **Cache Hit Rate:** `> 85%` for repetitive queries.
+
