@@ -5,6 +5,7 @@ using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using StadiumOps.ApiTests.Infrastructure;
+using static StadiumOps.ApiTests.Infrastructure.TestHelpers;
 using StadiumOps.Infrastructure.Persistence;
 
 namespace StadiumOps.ApiTests;
@@ -103,32 +104,5 @@ public sealed class IncidentFlowTests(StadiumOpsApiFactory factory) : IClassFixt
         Assert.True(await db.AuditLogs.AnyAsync(x => x.Action == "IncidentCreated"));
     }
 
-    private static async Task<Envelope<T>> ReadEnvelope<T>(HttpResponseMessage response)
-    {
-        var stream = await response.Content.ReadAsStreamAsync();
-        var payload = await JsonSerializer.DeserializeAsync<Envelope<T>>(stream, JsonOptions);
-        Assert.NotNull(payload);
-        return payload;
-    }
-
-    private static async Task<AuthPayload> RegisterAsync(HttpClient client, string prefix)
-    {
-        var response = await client.PostAsJsonAsync("/api/v1/auth/register", new
-        {
-            name = "Test Fan",
-            email = $"{prefix}-{Guid.NewGuid():N}@example.com",
-            password = "Testing1234!@#",
-            preferredLanguage = "en",
-            accessibilityPreference = "",
-            requestedRole = "RegisteredFan"
-        });
-        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
-        var envelope = await ReadEnvelope<AuthPayload>(response);
-        return envelope.Data;
-    }
-
-    private sealed record Envelope<T>(bool Success, T Data, string CorrelationId);
-    private sealed record AuthPayload(string AccessToken, string RefreshToken, string AccessTokenExpiresAt, UserPayload User);
-    private sealed record UserPayload(string Id, string Name, string Email, string PreferredLanguage, string[] Roles);
     private sealed record IncidentPayload(string Id, string Category, string Severity, string Priority, string Location, string Status, string AssignedTeam, DateTimeOffset CreatedAt);
 }

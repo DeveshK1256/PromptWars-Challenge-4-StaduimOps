@@ -6,6 +6,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using System.Threading.Tasks;
 using StadiumOps.ApiTests.Infrastructure;
+using static StadiumOps.ApiTests.Infrastructure.TestHelpers;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -19,22 +20,8 @@ public sealed class LoadAndPerformanceTests(StadiumOpsApiFactory factory, ITestO
     {
         var client = factory.CreateClient();
         
-        // 1. Register a test user and set header
-        var response = await client.PostAsJsonAsync("/api/v1/auth/register", new
-        {
-            name = "Load Tester",
-            email = $"load-{Guid.NewGuid():N}@example.com",
-            password = "Testing1234!@#",
-            preferredLanguage = "en",
-            accessibilityPreference = "",
-            requestedRole = "RegisteredFan"
-        });
-        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
-        
-        var authStream = await response.Content.ReadAsStreamAsync();
-        var authDoc = await JsonDocument.ParseAsync(authStream);
-        var token = authDoc.RootElement.GetProperty("data").GetProperty("accessToken").GetString();
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        var auth = await RegisterAsync(client, "load");
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", auth.AccessToken);
 
         // 2. Cold Start Request (loads cache)
         var stopwatch = Stopwatch.StartNew();

@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using StadiumOps.Application.Events;
 using StadiumOps.ApiTests.Infrastructure;
+using static StadiumOps.ApiTests.Infrastructure.TestHelpers;
 using StadiumOps.Infrastructure.Persistence;
 
 namespace StadiumOps.ApiTests;
@@ -185,37 +186,6 @@ public sealed class AuthAndFanFlowTests(StadiumOpsApiFactory factory) : IClassFi
             && x.TokensUsed == 0));
     }
 
-    private static async Task<Envelope<T>> ReadEnvelope<T>(HttpResponseMessage response)
-    {
-        var stream = await response.Content.ReadAsStreamAsync();
-        var payload = await JsonSerializer.DeserializeAsync<Envelope<T>>(stream, JsonOptions);
-        Assert.NotNull(payload);
-        Assert.True(payload.Success);
-        Assert.NotNull(payload.Data);
-        return payload;
-    }
-
-    private static async Task<AuthPayload> RegisterAsync(HttpClient client, string emailPrefix)
-    {
-        var response = await client.PostAsJsonAsync("/api/v1/auth/register", new
-        {
-            name = "Integration Fan",
-            email = $"{emailPrefix}-{Guid.NewGuid():N}@example.com",
-            password = "Testing1234!@#",
-            preferredLanguage = "en",
-            accessibilityPreference = "Wheelchair route",
-            requestedRole = "RegisteredFan"
-        });
-
-        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
-        var envelope = await ReadEnvelope<AuthPayload>(response);
-        return envelope.Data;
-    }
-
-    private sealed record Envelope<T>(bool Success, T Data, string CorrelationId);
-    private sealed record AuthPayload(string AccessToken, string RefreshToken, string AccessTokenExpiresAt, UserPayload User);
-    private sealed record UserPayload(string Id, string Name, string Email, string PreferredLanguage, string[] Roles);
-    private sealed record PagedPayload<T>(T[] Items, int Page, int PageSize, int TotalCount, int TotalPages);
     private sealed record StadiumPayload(string Id, string Name, string City, string Country, int Capacity);
     private sealed record AiAgentPayload(string Key, string DisplayName, string Description, string[] Intents, string[] Responsibilities, bool RequiresOperationalRole, bool SafetyCritical);
     private sealed record AiKnowledgePayload(string Id, string Category, string Title, string SourceType, string? SourceUri, string ContentSummary, string Language, bool IsApproved);

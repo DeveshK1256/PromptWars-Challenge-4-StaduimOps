@@ -5,6 +5,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using System.Threading.Tasks;
 using StadiumOps.ApiTests.Infrastructure;
+using static StadiumOps.ApiTests.Infrastructure.TestHelpers;
 using Xunit;
 
 namespace StadiumOps.ApiTests;
@@ -38,34 +39,4 @@ public sealed class LogoutTokenInvalidationTests(StadiumOpsApiFactory factory) :
         Assert.Equal(HttpStatusCode.Unauthorized, meResponseAfter.StatusCode);
     }
 
-    private static async Task<Envelope<T>> ReadEnvelope<T>(HttpResponseMessage response)
-    {
-        var stream = await response.Content.ReadAsStreamAsync();
-        var payload = await JsonSerializer.DeserializeAsync<Envelope<T>>(stream, JsonOptions);
-        Assert.NotNull(payload);
-        Assert.True(payload.Success);
-        Assert.NotNull(payload.Data);
-        return payload;
-    }
-
-    private static async Task<AuthPayload> RegisterAsync(HttpClient client, string emailPrefix)
-    {
-        var response = await client.PostAsJsonAsync("/api/v1/auth/register", new
-        {
-            name = "Blacklist Fan",
-            email = $"{emailPrefix}-{Guid.NewGuid():N}@example.com",
-            password = "Testing1234!@#", // Policy-compliant password
-            preferredLanguage = "en",
-            accessibilityPreference = "Wheelchair route",
-            requestedRole = "RegisteredFan"
-        });
-
-        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
-        var envelope = await ReadEnvelope<AuthPayload>(response);
-        return envelope.Data;
-    }
-
-    private sealed record Envelope<T>(bool Success, T Data, string CorrelationId);
-    private sealed record AuthPayload(string AccessToken, string RefreshToken, string AccessTokenExpiresAt, UserPayload User);
-    private sealed record UserPayload(string Id, string Name, string Email, string PreferredLanguage, string[] Roles);
 }

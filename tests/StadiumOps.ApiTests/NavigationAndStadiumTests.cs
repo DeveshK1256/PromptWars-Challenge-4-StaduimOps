@@ -3,6 +3,7 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
 using StadiumOps.ApiTests.Infrastructure;
+using static StadiumOps.ApiTests.Infrastructure.TestHelpers;
 
 namespace StadiumOps.ApiTests;
 
@@ -125,33 +126,5 @@ public sealed class NavigationAndStadiumTests(StadiumOpsApiFactory factory) : IC
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 
-    private static async Task<Envelope<T>> ReadEnvelope<T>(HttpResponseMessage response)
-    {
-        var stream = await response.Content.ReadAsStreamAsync();
-        var payload = await JsonSerializer.DeserializeAsync<Envelope<T>>(stream, JsonOptions);
-        Assert.NotNull(payload);
-        return payload;
-    }
-
-    private static async Task<AuthPayload> RegisterAsync(HttpClient client, string prefix)
-    {
-        var response = await client.PostAsJsonAsync("/api/v1/auth/register", new
-        {
-            name = "Test Fan",
-            email = $"{prefix}-{Guid.NewGuid():N}@example.com",
-            password = "Testing1234!@#",
-            preferredLanguage = "en",
-            accessibilityPreference = "",
-            requestedRole = "RegisteredFan"
-        });
-        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
-        var envelope = await ReadEnvelope<AuthPayload>(response);
-        return envelope.Data;
-    }
-
-    private sealed record Envelope<T>(bool Success, T Data, string CorrelationId);
-    private sealed record AuthPayload(string AccessToken, string RefreshToken, string AccessTokenExpiresAt, UserPayload User);
-    private sealed record UserPayload(string Id, string Name, string Email, string PreferredLanguage, string[] Roles);
-    private sealed record PagedPayload<T>(T[] Items, int Page, int PageSize, int TotalCount, int TotalPages);
     private sealed record StadiumPayload(string Id, string Name, string City, string Country, int Capacity);
 }

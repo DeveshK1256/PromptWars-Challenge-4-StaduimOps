@@ -6,7 +6,7 @@ namespace StadiumOps.ApiTests;
 
 public sealed class AccessibilityTests
 {
-    private static readonly string FrontendPath = Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), "../../../../frontend"));
+    private static readonly string FrontendPath = Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), "../../../../apps/web"));
 
     [Fact]
     public void IndexHtml_ShouldHaveLangAndSkipLink()
