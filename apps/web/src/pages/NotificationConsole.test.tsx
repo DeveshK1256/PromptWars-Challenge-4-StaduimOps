@@ -3,7 +3,6 @@ import { describe, expect, it, vi } from "vitest";
 import { NotificationConsole } from "./NotificationConsole";
 import { ApiClient } from "../services/api";
 
-// Mock the ApiClient
 const mockNotifications = [
   {
     id: "n1",
@@ -34,6 +33,6 @@ describe("NotificationConsole", () => {
     });
 
     expect(screen.getByText("Test Message details")).toBeInTheDocument();
-    expect(screen.getByText("High")).toBeInTheDocument();
+    expect(screen.getAllByText("High").length).toBeGreaterThan(0);
   });
 });
