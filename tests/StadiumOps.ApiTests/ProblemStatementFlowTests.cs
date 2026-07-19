@@ -107,7 +107,7 @@ public sealed class ProblemStatementFlowTests(StadiumOpsApiFactory factory) : IC
         {
             name = "Test User",
             email = $"{prefix}-{Guid.NewGuid():N}@example.com",
-            password = "Testing1234",
+            password = "Testing1234!@#",
             preferredLanguage = "en",
             accessibilityPreference = "",
             requestedRole = role

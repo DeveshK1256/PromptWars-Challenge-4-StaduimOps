@@ -52,6 +52,17 @@ public sealed class NavigationAndStadiumTests(StadiumOpsApiFactory factory) : IC
     }
 
     [Fact]
+    public async Task Stadiums_WithPageGreaterThanMillion_ReturnsBadRequest()
+    {
+        var client = factory.CreateClient();
+        var auth = await RegisterAsync(client, "page-million-test");
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", auth.AccessToken);
+
+        var response = await client.GetAsync("/api/v1/stadiums?page=1000001");
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
     public async Task TodayMatch_WithToken_ReturnsMatchOrNotFound()
     {
         var client = factory.CreateClient();
@@ -128,7 +139,7 @@ public sealed class NavigationAndStadiumTests(StadiumOpsApiFactory factory) : IC
         {
             name = "Test Fan",
             email = $"{prefix}-{Guid.NewGuid():N}@example.com",
-            password = "Testing1234",
+            password = "Testing1234!@#",
             preferredLanguage = "en",
             accessibilityPreference = "",
             requestedRole = "RegisteredFan"

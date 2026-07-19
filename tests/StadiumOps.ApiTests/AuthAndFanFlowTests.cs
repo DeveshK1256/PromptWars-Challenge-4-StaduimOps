@@ -34,7 +34,7 @@ public sealed class AuthAndFanFlowTests(StadiumOpsApiFactory factory) : IClassFi
         {
             name = "Integration Fan",
             email,
-            password = "Testing1234",
+            password = "Testing1234!@#",
             preferredLanguage = "en",
             accessibilityPreference = "Wheelchair route",
             requestedRole = "RegisteredFan"
@@ -62,7 +62,7 @@ public sealed class AuthAndFanFlowTests(StadiumOpsApiFactory factory) : IClassFi
         {
             name = "Privileged Registration",
             email,
-            password = "Testing1234",
+            password = "Testing1234!@#",
             preferredLanguage = "en",
             accessibilityPreference = "",
             requestedRole = "OperationsManager"
@@ -201,7 +201,7 @@ public sealed class AuthAndFanFlowTests(StadiumOpsApiFactory factory) : IClassFi
         {
             name = "Integration Fan",
             email = $"{emailPrefix}-{Guid.NewGuid():N}@example.com",
-            password = "Testing1234",
+            password = "Testing1234!@#",
             preferredLanguage = "en",
             accessibilityPreference = "Wheelchair route",
             requestedRole = "RegisteredFan"

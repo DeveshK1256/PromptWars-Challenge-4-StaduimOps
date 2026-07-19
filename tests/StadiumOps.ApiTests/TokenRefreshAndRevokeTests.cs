@@ -114,7 +114,7 @@ public sealed class TokenRefreshAndRevokeTests(StadiumOpsApiFactory factory) : I
         {
             name = "Test Fan",
             email,
-            password = "Testing1234",
+            password = "Testing1234!@#",
             preferredLanguage = "en",
             accessibilityPreference = "",
             requestedRole = "RegisteredFan"
@@ -144,7 +144,7 @@ public sealed class TokenRefreshAndRevokeTests(StadiumOpsApiFactory factory) : I
         {
             name = "Test Fan",
             email = $"{prefix}-{Guid.NewGuid():N}@example.com",
-            password = "Testing1234",
+            password = "Testing1234!@#",
             preferredLanguage = "en",
             accessibilityPreference = "",
             requestedRole = "RegisteredFan"

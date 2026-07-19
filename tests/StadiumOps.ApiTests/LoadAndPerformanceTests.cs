@@ -24,7 +24,7 @@ public sealed class LoadAndPerformanceTests(StadiumOpsApiFactory factory, ITestO
         {
             name = "Load Tester",
             email = $"load-{Guid.NewGuid():N}@example.com",
-            password = "Testing1234",
+            password = "Testing1234!@#",
             preferredLanguage = "en",
             accessibilityPreference = "",
             requestedRole = "RegisteredFan"
