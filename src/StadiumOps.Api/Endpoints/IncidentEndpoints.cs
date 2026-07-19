@@ -3,12 +3,8 @@ using StadiumOps.Api.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.SignalR;
 using StadiumOps.Api.Hubs;
-using StadiumOps.Api.Responses;
 using StadiumOps.Application.Abstractions;
-using StadiumOps.Application.Events;
 using StadiumOps.Application.Features;
-using StadiumOps.Domain.Operations;
-using StadiumOps.Infrastructure.Persistence;
 
 namespace StadiumOps.Api.Endpoints;
 
@@ -30,10 +26,9 @@ public static class IncidentEndpoints
     private static async Task<IResult> CreateAsync(
         IncidentCreateRequest request,
         ClaimsPrincipal principal,
-        StadiumOpsDbContext dbContext,
-        IAuditWriter auditWriter,
-        IIntegrationEventOutboxWriter outboxWriter,
+        IIncidentService service,
         IHubContext<OperationsHub> hubContext,
+        ILogger<IncidentEndpoints> logger,
         HttpContext context,
         CancellationToken cancellationToken)
     {
@@ -42,160 +37,120 @@ public static class IncidentEndpoints
             || string.IsNullOrWhiteSpace(request.Location)
             || string.IsNullOrWhiteSpace(request.Description))
         {
+            logger.LogWarning("Create incident failed: validation error - missing category/severity/location/description.");
             return ApiResults.ValidationProblem(context, "Category, severity, location, and description are required.");
         }
 
         var userId = principal.GetUserId();
         if (userId is null)
         {
+            logger.LogWarning("Create incident unauthorized access attempt.");
             return ApiResults.Unauthorized(context);
         }
 
-        var incident = new IncidentReport
+        try
         {
-            ReporterId = userId.Value,
-            Category = StadiumOps.Application.Security.InputSanitizer.Sanitize(request.Category),
-            Severity = StadiumOps.Application.Security.InputSanitizer.Sanitize(request.Severity),
-            Location = StadiumOps.Application.Security.InputSanitizer.Sanitize(request.Location),
-            Description = StadiumOps.Application.Security.InputSanitizer.Sanitize(request.Description),
-            Priority = IncidentPrioritizer.Prioritize(request.Category, request.Severity),
-            Status = "Open",
-            AssignedTeam = IncidentPrioritizer.AssignTeam(request.Category)
-        };
+            logger.LogInformation("Creating incident for user {UserId} with category {Category}.", userId, request.Category);
+            var response = await service.CreateIncidentAsync(
+                request,
+                userId.Value,
+                context.Connection.RemoteIpAddress?.ToString(),
+                context.GetCorrelationId(),
+                cancellationToken);
 
-        dbContext.IncidentReports.Add(incident);
-        auditWriter.Add(
-            userId,
-            "IncidentCreated",
-            $"Incident:{incident.Id}",
-            incident.Category,
-            context.Connection.RemoteIpAddress?.ToString(),
-            context.GetCorrelationId());
-        outboxWriter.Add(
-            IntegrationEventNames.IncidentReported,
-            nameof(IncidentReport),
-            incident.Id,
-            new
-            {
-                incident.Id,
-                incident.Category,
-                incident.Severity,
-                incident.Priority,
-                incident.Location,
-                incident.Status,
-                incident.AssignedTeam,
-                incident.ReporterId
-            },
-            context.GetCorrelationId());
-
-        await dbContext.SaveChangesAsync(cancellationToken);
-        await hubContext.Clients.Group("operations").SendAsync("IncidentCreated", ToResponse(incident), cancellationToken);
-        return ApiResults.Created(context, $"/api/v1/incidents/{incident.Id}", ToResponse(incident));
+            await hubContext.Clients.Group("operations").SendAsync("IncidentCreated", response, cancellationToken);
+            logger.LogInformation("Incident {Id} created successfully.", response.Id);
+            return ApiResults.Created(context, $"/api/v1/incidents/{response.Id}", response);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error occurred while creating incident.");
+            return ApiResults.InternalServerError(context, "An unexpected error occurred while reporting the incident.");
+        }
     }
 
     private static async Task<IResult> ListAsync(
         int? page,
         int? pageSize,
         string? status,
-        StadiumOpsDbContext dbContext,
+        IIncidentService service,
+        ILogger<IncidentEndpoints> logger,
         HttpContext context,
         CancellationToken cancellationToken)
     {
         var safePage = Math.Max(page ?? 1, 1);
         if (safePage > 1000000)
         {
+            logger.LogWarning("List incidents failed: requested page {Page} exceeds maximum limit.", safePage);
             return ApiResults.ValidationProblem(context, "Page number is too large.");
         }
         var safePageSize = Math.Clamp(pageSize ?? 20, 1, 100);
-        var query = dbContext.IncidentReports.AsQueryable();
 
-        if (!string.IsNullOrWhiteSpace(status))
+        try
         {
-            query = query.Where(x => x.Status == status);
+            logger.LogInformation("Listing incidents: Page={Page}, PageSize={PageSize}, Status={Status}.", safePage, safePageSize, status);
+            var result = await service.ListIncidentsAsync(safePage, safePageSize, status, cancellationToken);
+            return ApiResults.Ok(context, result);
         }
-
-        var total = await query.CountAsync(cancellationToken);
-        var incidents = await query
-            .OrderByDescending(x => x.Priority == "Critical")
-            .ThenByDescending(x => x.CreatedAt)
-            .Skip((safePage - 1) * safePageSize)
-            .Take(safePageSize)
-            .Select(x => ToResponse(x))
-            .ToArrayAsync(cancellationToken);
-
-        return ApiResults.Ok(context, new PagedEnvelope<IncidentResponse>(
-            incidents,
-            safePage,
-            safePageSize,
-            total,
-            (int)Math.Ceiling(total / (double)safePageSize)));
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error occurred while listing incidents.");
+            return ApiResults.InternalServerError(context, "An unexpected error occurred while listing the incidents.");
+        }
     }
 
     private static async Task<IResult> UpdateStatusAsync(
         Guid id,
         IncidentStatusRequest request,
         ClaimsPrincipal principal,
-        StadiumOpsDbContext dbContext,
-        IAuditWriter auditWriter,
-        IIntegrationEventOutboxWriter outboxWriter,
+        IIncidentService service,
         IHubContext<OperationsHub> hubContext,
+        ILogger<IncidentEndpoints> logger,
         HttpContext context,
         CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(request.Status))
         {
+            logger.LogWarning("Update incident status failed: status is required.");
             return ApiResults.ValidationProblem(context, "Status is required.");
         }
 
-        var incident = await dbContext.IncidentReports.FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
-        if (incident is null)
-        {
-            return ApiResults.NotFound(context, "Incident was not found.");
-        }
-
-        incident.Status = request.Status.Trim();
-        incident.AssignedTeam = string.IsNullOrWhiteSpace(request.AssignedTeam)
-            ? incident.AssignedTeam
-            : request.AssignedTeam.Trim();
-
-        auditWriter.Add(
-            principal.GetUserId(),
-            "IncidentStatusUpdated",
-            $"Incident:{incident.Id}",
-            incident.Status,
-            context.Connection.RemoteIpAddress?.ToString(),
-            context.GetCorrelationId());
-        outboxWriter.Add(
-            IntegrationEventNames.IncidentStatusChanged,
-            nameof(IncidentReport),
-            incident.Id,
-            new
-            {
-                incident.Id,
-                incident.Status,
-                incident.AssignedTeam
-            },
-            context.GetCorrelationId());
+        var userId = principal.GetUserId();
         try
         {
-            await dbContext.SaveChangesAsync(cancellationToken);
+            logger.LogInformation("Updating status of incident {Id} to {Status} by user {UserId}.", id, request.Status, userId);
+            var response = await service.UpdateIncidentStatusAsync(
+                id,
+                request,
+                userId,
+                context.Connection.RemoteIpAddress?.ToString(),
+                context.GetCorrelationId(),
+                cancellationToken);
+
+            if (response is null)
+            {
+                logger.LogWarning("Incident {Id} not found for status update.", id);
+                return ApiResults.NotFound(context, "Incident was not found.");
+            }
+
+            await hubContext.Clients.Group("operations").SendAsync("IncidentUpdated", response, cancellationToken);
+            logger.LogInformation("Incident {Id} status updated successfully to {Status}.", id, response.Status);
+            return ApiResults.Ok(context, response);
         }
-        catch (DbUpdateConcurrencyException)
+        catch (DbUpdateConcurrencyException ex)
         {
+            logger.LogWarning(ex, "Concurrency conflict updating incident {Id}.", id);
             return ApiResults.Conflict(context, "This incident has been modified by another operator. Please reload and try again.");
         }
-
-        await hubContext.Clients.Group("operations").SendAsync("IncidentUpdated", ToResponse(incident), cancellationToken);
-        return ApiResults.Ok(context, ToResponse(incident));
+        catch (DbUpdateException ex)
+        {
+            logger.LogError(ex, "Database constraints failed while updating incident {Id}.", id);
+            return ApiResults.BadRequest(context, "Database integrity or constraint validation failed.");
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error occurred while updating status of incident {Id}.", id);
+            return ApiResults.InternalServerError(context, "An unexpected error occurred while updating the incident status.");
+        }
     }
-
-    private static IncidentResponse ToResponse(IncidentReport incident) => new(
-        incident.Id,
-        incident.Category,
-        incident.Severity,
-        incident.Priority,
-        incident.Location,
-        incident.Status,
-        incident.AssignedTeam,
-        incident.CreatedAt);
 }

@@ -153,6 +153,7 @@ public static class DependencyInjection
         services.AddScoped<TokenService>();
         services.AddScoped<IAuditWriter, AuditWriter>();
         services.AddScoped<IIntegrationEventOutboxWriter, IntegrationEventOutboxWriter>();
+        services.AddScoped<IIncidentRepository, Persistence.Repositories.IncidentRepository>();
         services.AddScoped<IAiAssistantGateway, VertexGeminiAssistantGateway>();
         services.AddScoped<INotificationGateway, FirebaseNotificationGateway>();
         services.AddScoped<IMalwareScanner, SafeMalwareScanner>();

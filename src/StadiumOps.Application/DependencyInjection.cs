@@ -10,6 +10,7 @@ public static class DependencyInjection
     {
         services.AddSingleton<IClock, SystemClock>();
         services.AddScoped<IAiOrchestrator, AiOrchestrator>();
+        services.AddScoped<IIncidentService, Services.IncidentService>();
         return services;
     }
 }
