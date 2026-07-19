@@ -4,6 +4,7 @@ using Google.Apis.Auth.OAuth2;
 using Microsoft.Extensions.Caching.Memory;
 using StadiumOps.Infrastructure.BackgroundServices;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using System.IdentityModel.Tokens.Jwt;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -125,6 +126,23 @@ public static class DependencyInjection
                     IssuerSigningKey = new SymmetricSecurityKey(signingKey),
                     ClockSkew = TimeSpan.FromMinutes(1)
                 };
+                options.Events = new JwtBearerEvents
+                {
+                    OnTokenValidated = context =>
+                    {
+                        var cache = context.HttpContext.RequestServices.GetRequiredService<IMemoryCache>();
+                        if (context.SecurityToken is JwtSecurityToken jwtToken)
+                        {
+                            var rawToken = jwtToken.RawData;
+                            var blacklistKey = $"jwt:blacklist:{rawToken}";
+                            if (cache.TryGetValue(blacklistKey, out _))
+                            {
+                                context.Fail("This token has been blacklisted on logout.");
+                            }
+                        }
+                        return Task.CompletedTask;
+                    }
+                };
             });
 
         services.AddAuthorizationBuilder()
@@ -137,6 +155,7 @@ public static class DependencyInjection
         services.AddScoped<IIntegrationEventOutboxWriter, IntegrationEventOutboxWriter>();
         services.AddScoped<IAiAssistantGateway, VertexGeminiAssistantGateway>();
         services.AddScoped<INotificationGateway, FirebaseNotificationGateway>();
+        services.AddScoped<IMalwareScanner, SafeMalwareScanner>();
         
         services.AddHealthChecks()
             .AddCheck<DatabaseReadinessCheck>("database");

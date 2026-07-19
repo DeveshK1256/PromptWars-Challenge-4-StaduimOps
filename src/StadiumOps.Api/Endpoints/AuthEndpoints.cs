@@ -2,6 +2,7 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Identity;
 using StadiumOps.Api.Extensions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using StadiumOps.Api.Responses;
 using StadiumOps.Application.Abstractions;
 using StadiumOps.Application.Features;
@@ -178,12 +179,21 @@ public static class AuthEndpoints
         TokenService tokenService,
         IAuditWriter auditWriter,
         StadiumOpsDbContext dbContext,
+        IMemoryCache cache,
         HttpContext context,
         CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(request.RefreshToken))
         {
             return ApiResults.ValidationProblem(context, "Refresh token is required.");
+        }
+
+        var authorization = context.Request.Headers.Authorization.ToString();
+        if (authorization.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+        {
+            var token = authorization["Bearer ".Length..].Trim();
+            var blacklistKey = $"jwt:blacklist:{token}";
+            cache.Set(blacklistKey, true, TimeSpan.FromMinutes(15));
         }
 
         var revoked = await tokenService.RevokeAsync(request.RefreshToken, cancellationToken);
