@@ -100,20 +100,20 @@ export function App() {
           {navItems
             .filter((item) => !item.requiresRole || session.user.roles.includes(item.requiresRole))
             .map((item) => (
-            <button
-              key={item.key}
-              className={activeView === item.key ? "nav-item active" : "nav-item"}
-              type="button"
-              onClick={() => {
-                setActiveView(item.key);
-                setMenuOpen(false);
-              }}
-              aria-current={activeView === item.key ? "page" : undefined}
-            >
-              {item.icon}
-              <span>{item.label}</span>
-            </button>
-          ))}
+              <button
+                key={item.key}
+                className={activeView === item.key ? "nav-item active" : "nav-item"}
+                type="button"
+                onClick={() => {
+                  setActiveView(item.key);
+                  setMenuOpen(false);
+                }}
+                aria-current={activeView === item.key ? "page" : undefined}
+              >
+                {item.icon}
+                <span>{item.label}</span>
+              </button>
+            ))}
         </nav>
         <div className="sidebar-footer">
           <button

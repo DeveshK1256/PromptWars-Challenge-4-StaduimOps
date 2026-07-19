@@ -105,13 +105,7 @@ type ZoneData = {
   status: string;
 };
 
-export function Stadium3D({
-  zones = [],
-  stadiumName = "Stadium",
-}: {
-  zones?: ZoneData[];
-  stadiumName?: string;
-}) {
+export function Stadium3D({ zones = [], stadiumName = "Stadium" }: { zones?: ZoneData[]; stadiumName?: string }) {
   const tiers = zones.length > 0 ? zones : defaultZones;
 
   return (

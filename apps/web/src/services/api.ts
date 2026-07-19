@@ -673,15 +673,14 @@ async function demoRequest<T>(path: string, body: unknown): Promise<T> {
         status: 409,
       } satisfies ApiError;
     }
-    registry[email] = { name, role, preferredLanguage: payload.preferredLanguage || "en", accessibilityPreference: payload.accessibilityPreference };
-    localStorage.setItem("stadium-ops-demo-users", JSON.stringify(registry));
-    return demoAuth(
+    registry[email] = {
       name,
-      email,
-      payload.preferredLanguage,
-      payload.accessibilityPreference,
       role,
-    ) as T;
+      preferredLanguage: payload.preferredLanguage || "en",
+      accessibilityPreference: payload.accessibilityPreference,
+    };
+    localStorage.setItem("stadium-ops-demo-users", JSON.stringify(registry));
+    return demoAuth(name, email, payload.preferredLanguage, payload.accessibilityPreference, role) as T;
   }
 
   if (path === "/auth/login") {
@@ -696,13 +695,7 @@ async function demoRequest<T>(path: string, body: unknown): Promise<T> {
         status: 401,
       } satisfies ApiError;
     }
-    return demoAuth(
-      user.name,
-      email,
-      user.preferredLanguage,
-      user.accessibilityPreference,
-      user.role,
-    ) as T;
+    return demoAuth(user.name, email, user.preferredLanguage, user.accessibilityPreference, user.role) as T;
   }
 
   if (path === "/auth/logout") {

@@ -68,7 +68,11 @@ export function OperationsConsole({ client }: { client: ApiClient }) {
         <article className="panel">
           <h2>3D stadium crowd visualization</h2>
           <Stadium3D
-            zones={zones.map((z) => ({ name: z.name, density: Math.round((z.currentDensity / z.maximumCapacity) * 100), status: z.status }))}
+            zones={zones.map((z) => ({
+              name: z.name,
+              density: Math.round((z.currentDensity / z.maximumCapacity) * 100),
+              status: z.status,
+            }))}
             stadiumName={zones[0]?.stadiumName ?? "Stadium"}
           />
         </article>

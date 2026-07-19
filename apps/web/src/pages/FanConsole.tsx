@@ -213,7 +213,8 @@ export function FanConsole({ client }: { client: ApiClient }) {
             />
           </div>
           <p className="muted" style={{ marginTop: 8 }}>
-            Powered by Google Maps Platform — tap for full navigation with live traffic, transit schedules, and walking directions.
+            Powered by Google Maps Platform — tap for full navigation with live traffic, transit schedules, and walking
+            directions.
           </p>
         </article>
       )}
