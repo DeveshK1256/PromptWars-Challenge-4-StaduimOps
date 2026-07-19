@@ -68,7 +68,7 @@ public static class IncidentEndpoints
             userId,
             "IncidentCreated",
             $"Incident:{incident.Id}",
-            $"{incident.Category} at {incident.Location}",
+            incident.Category,
             context.Connection.RemoteIpAddress?.ToString(),
             context.GetCorrelationId());
         outboxWriter.Add(
@@ -102,6 +102,10 @@ public static class IncidentEndpoints
         CancellationToken cancellationToken)
     {
         var safePage = Math.Max(page ?? 1, 1);
+        if (safePage > 1000000)
+        {
+            return ApiResults.ValidationProblem(context, "Page number is too large.");
+        }
         var safePageSize = Math.Clamp(pageSize ?? 20, 1, 100);
         var query = dbContext.IncidentReports.AsQueryable();
 

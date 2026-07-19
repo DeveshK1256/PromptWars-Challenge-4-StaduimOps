@@ -80,7 +80,7 @@ public static class AiEndpoints
             var conversation = new AiConversation
             {
                 UserId = userId.Value,
-                Prompt = request.Prompt.Trim(),
+                Prompt = RedactSensitivePrompt(request.Prompt.Trim()),
                 Response = result.Text,
                 Intent = result.Intent,
                 AgentKey = result.AgentKey,
@@ -223,5 +223,23 @@ public static class AiEndpoints
             .ToArrayAsync(cancellationToken);
 
         return ApiResults.Ok(context, conversations);
+    }
+
+    private static string RedactSensitivePrompt(string prompt)
+    {
+        var redacted = prompt;
+        var sensitivePatterns = new[]
+        {
+            @"password\s*=\s*\S+",
+            @"key\s*=\s*\S+",
+            @"token\s*=\s*\S+",
+            @"jwt\s*=\s*\S+",
+            @"credential\s*=\s*\S+"
+        };
+        foreach (var pattern in sensitivePatterns)
+        {
+            redacted = System.Text.RegularExpressions.Regex.Replace(redacted, pattern, "[REDACTED]", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+        }
+        return redacted;
     }
 }

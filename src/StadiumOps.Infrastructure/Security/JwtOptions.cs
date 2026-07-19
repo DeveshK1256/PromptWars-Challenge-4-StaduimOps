@@ -18,6 +18,10 @@ public sealed class JwtOptions
             {
                 throw new InvalidOperationException("Jwt:SigningKey must be at least 32 characters (256 bits) long to prevent signature forgery.");
             }
+            if (isProduction && string.Equals(SigningKey, "development-only-change-this-key-before-production-32chars-minimum", StringComparison.OrdinalIgnoreCase))
+            {
+                throw new InvalidOperationException("Jwt:SigningKey cannot be set to the default development key in Production.");
+            }
             return Encoding.UTF8.GetBytes(SigningKey);
         }
 

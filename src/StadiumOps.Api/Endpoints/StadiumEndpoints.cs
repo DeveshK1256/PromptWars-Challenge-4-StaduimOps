@@ -80,6 +80,10 @@ public static class StadiumEndpoints
         CancellationToken cancellationToken)
     {
         var safePage = Math.Max(page ?? 1, 1);
+        if (safePage > 1000000)
+        {
+            return ApiResults.ValidationProblem(context, "Page number is too large.");
+        }
         var safePageSize = Math.Clamp(pageSize ?? 20, 1, 100);
         var cacheKey = $"stadiums:page:{safePage}:size:{safePageSize}";
         if (!cache.TryGetValue(cacheKey, out PagedEnvelope<StadiumSummaryResponse>? cached))

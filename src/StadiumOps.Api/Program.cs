@@ -32,6 +32,14 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddSignalR();
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration, builder.Environment);
+builder.Services.Configure<Microsoft.AspNetCore.Builder.ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedFor | Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedProto;
+    // Clear networks and proxies to trust all proxy headers in containerized (Cloud Run) environments
+    options.KnownNetworks.Clear();
+    options.KnownProxies.Clear();
+});
+
 builder.Services.AddRateLimiter(options =>
 {
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
@@ -73,7 +81,8 @@ builder.Services.AddCors(options =>
         }
 
         policy.WithOrigins(origins)
-            .AllowAnyHeader()
+            .WithHeaders("Authorization", "Content-Type", "Accept", "X-Requested-With", "X-Correlation-Id")
+            .WithExposedHeaders("X-Total-Count")
             .AllowAnyMethod()
             .AllowCredentials();
     });
@@ -81,6 +90,7 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
+app.UseForwardedHeaders();
 app.UseMiddleware<CorrelationIdMiddleware>();
 app.UseExceptionHandler(exceptionApp =>
 {
